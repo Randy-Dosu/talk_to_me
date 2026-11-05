@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+*.local
+.DS_Store
+.vite/
+coverage/
+*.log
+.env
+.env.*
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/

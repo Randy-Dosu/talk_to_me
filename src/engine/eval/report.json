@@ -1,0 +1,599 @@
+{
+  "generatedAt": "2026-11-05T23:17:07.332Z",
+  "engineVersion": "nkommo-engine-1.0.0",
+  "lexiconVersion": "nkommo-lex-1.4.0",
+  "note": "In-house evaluation on hand-written cases by the builders of the engine. Rules were iterated on the dev split only. These numbers are a sanity check on the pipeline — they are not clinical validation and must not be presented as diagnostic accuracy.",
+  "corpus": {
+    "total": 66,
+    "dev": 36,
+    "test": 30,
+    "ghanaianSubset": 16
+  },
+  "dev": {
+    "risk": {
+      "n": 36,
+      "accuracy": 0.889,
+      "macroF1": 0.796,
+      "perClass": {
+        "none": {
+          "precision": 0.955,
+          "recall": 1,
+          "f1": 0.977,
+          "support": 21
+        },
+        "watch": {
+          "precision": 1,
+          "recall": 0.833,
+          "f1": 0.909,
+          "support": 6
+        },
+        "elevated": {
+          "precision": 0.667,
+          "recall": 0.5,
+          "f1": 0.571,
+          "support": 4
+        },
+        "urgent": {
+          "precision": 0.667,
+          "recall": 0.8,
+          "f1": 0.727,
+          "support": 5
+        }
+      },
+      "confusion": {
+        "none": {
+          "none": 21,
+          "watch": 0,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "watch": {
+          "none": 1,
+          "watch": 5,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "elevated": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 2,
+          "urgent": 2
+        },
+        "urgent": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 1,
+          "urgent": 4
+        }
+      },
+      "labels": [
+        "none",
+        "watch",
+        "elevated",
+        "urgent"
+      ]
+    },
+    "mood": {
+      "n": 36,
+      "accuracy": 0.778,
+      "macroF1": 0.754,
+      "perClass": {
+        "bright": {
+          "precision": 0.833,
+          "recall": 0.833,
+          "f1": 0.833,
+          "support": 6
+        },
+        "steady": {
+          "precision": 0.75,
+          "recall": 0.6,
+          "f1": 0.667,
+          "support": 5
+        },
+        "unsettled": {
+          "precision": 0.6,
+          "recall": 0.75,
+          "f1": 0.667,
+          "support": 8
+        },
+        "heavy": {
+          "precision": 0.875,
+          "recall": 0.824,
+          "f1": 0.848,
+          "support": 17
+        }
+      },
+      "confusion": {
+        "bright": {
+          "bright": 5,
+          "steady": 1,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "steady": {
+          "bright": 1,
+          "steady": 3,
+          "unsettled": 1,
+          "heavy": 0
+        },
+        "unsettled": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 6,
+          "heavy": 2
+        },
+        "heavy": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 3,
+          "heavy": 14
+        }
+      },
+      "labels": [
+        "bright",
+        "steady",
+        "unsettled",
+        "heavy"
+      ]
+    },
+    "safety": {
+      "urgentRecall": 0.8,
+      "highRiskRecall": 1,
+      "missedHighRisk": [],
+      "falseAlarms": [],
+      "urgentN": 5,
+      "highRiskN": 9
+    },
+    "mae": 7.972,
+    "misses": [],
+    "alarms": [],
+    "n": 36
+  },
+  "test": {
+    "risk": {
+      "n": 30,
+      "accuracy": 0.867,
+      "macroF1": 0.774,
+      "perClass": {
+        "none": {
+          "precision": 0.944,
+          "recall": 0.895,
+          "f1": 0.919,
+          "support": 19
+        },
+        "watch": {
+          "precision": 0.333,
+          "recall": 0.5,
+          "f1": 0.4,
+          "support": 2
+        },
+        "elevated": {
+          "precision": 1,
+          "recall": 0.8,
+          "f1": 0.889,
+          "support": 5
+        },
+        "urgent": {
+          "precision": 0.8,
+          "recall": 1,
+          "f1": 0.889,
+          "support": 4
+        }
+      },
+      "confusion": {
+        "none": {
+          "none": 17,
+          "watch": 2,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "watch": {
+          "none": 1,
+          "watch": 1,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "elevated": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 4,
+          "urgent": 1
+        },
+        "urgent": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 0,
+          "urgent": 4
+        }
+      },
+      "labels": [
+        "none",
+        "watch",
+        "elevated",
+        "urgent"
+      ]
+    },
+    "mood": {
+      "n": 30,
+      "accuracy": 0.733,
+      "macroF1": 0.611,
+      "perClass": {
+        "bright": {
+          "precision": 1,
+          "recall": 0.6,
+          "f1": 0.75,
+          "support": 5
+        },
+        "steady": {
+          "precision": 0.25,
+          "recall": 0.333,
+          "f1": 0.286,
+          "support": 3
+        },
+        "unsettled": {
+          "precision": 0.6,
+          "recall": 0.429,
+          "f1": 0.5,
+          "support": 7
+        },
+        "heavy": {
+          "precision": 0.833,
+          "recall": 1,
+          "f1": 0.909,
+          "support": 15
+        }
+      },
+      "confusion": {
+        "bright": {
+          "bright": 3,
+          "steady": 2,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "steady": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 2,
+          "heavy": 0
+        },
+        "unsettled": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 3,
+          "heavy": 3
+        },
+        "heavy": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 0,
+          "heavy": 15
+        }
+      },
+      "labels": [
+        "bright",
+        "steady",
+        "unsettled",
+        "heavy"
+      ]
+    },
+    "safety": {
+      "urgentRecall": 1,
+      "highRiskRecall": 1,
+      "missedHighRisk": [],
+      "falseAlarms": [],
+      "urgentN": 4,
+      "highRiskN": 9
+    },
+    "mae": 9.2,
+    "misses": [],
+    "alarms": [],
+    "n": 30
+  },
+  "all": {
+    "risk": {
+      "n": 66,
+      "accuracy": 0.879,
+      "macroF1": 0.813,
+      "perClass": {
+        "none": {
+          "precision": 0.95,
+          "recall": 0.95,
+          "f1": 0.95,
+          "support": 40
+        },
+        "watch": {
+          "precision": 0.75,
+          "recall": 0.75,
+          "f1": 0.75,
+          "support": 8
+        },
+        "elevated": {
+          "precision": 0.857,
+          "recall": 0.667,
+          "f1": 0.75,
+          "support": 9
+        },
+        "urgent": {
+          "precision": 0.727,
+          "recall": 0.889,
+          "f1": 0.8,
+          "support": 9
+        }
+      },
+      "confusion": {
+        "none": {
+          "none": 38,
+          "watch": 2,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "watch": {
+          "none": 2,
+          "watch": 6,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "elevated": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 6,
+          "urgent": 3
+        },
+        "urgent": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 1,
+          "urgent": 8
+        }
+      },
+      "labels": [
+        "none",
+        "watch",
+        "elevated",
+        "urgent"
+      ]
+    },
+    "mood": {
+      "n": 66,
+      "accuracy": 0.758,
+      "macroF1": 0.695,
+      "perClass": {
+        "bright": {
+          "precision": 0.889,
+          "recall": 0.727,
+          "f1": 0.8,
+          "support": 11
+        },
+        "steady": {
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "support": 8
+        },
+        "unsettled": {
+          "precision": 0.6,
+          "recall": 0.6,
+          "f1": 0.6,
+          "support": 15
+        },
+        "heavy": {
+          "precision": 0.853,
+          "recall": 0.906,
+          "f1": 0.879,
+          "support": 32
+        }
+      },
+      "confusion": {
+        "bright": {
+          "bright": 8,
+          "steady": 3,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "steady": {
+          "bright": 1,
+          "steady": 4,
+          "unsettled": 3,
+          "heavy": 0
+        },
+        "unsettled": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 9,
+          "heavy": 5
+        },
+        "heavy": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 3,
+          "heavy": 29
+        }
+      },
+      "labels": [
+        "bright",
+        "steady",
+        "unsettled",
+        "heavy"
+      ]
+    },
+    "safety": {
+      "urgentRecall": 0.889,
+      "highRiskRecall": 1,
+      "missedHighRisk": [],
+      "falseAlarms": [],
+      "urgentN": 9,
+      "highRiskN": 18
+    },
+    "mae": 8.53,
+    "misses": [],
+    "alarms": [],
+    "n": 66
+  },
+  "ghanaian": {
+    "risk": {
+      "n": 16,
+      "accuracy": 0.875,
+      "macroF1": 0.771,
+      "perClass": {
+        "none": {
+          "precision": 1,
+          "recall": 0.909,
+          "f1": 0.952,
+          "support": 11
+        },
+        "watch": {
+          "precision": 0.5,
+          "recall": 1,
+          "f1": 0.667,
+          "support": 1
+        },
+        "elevated": {
+          "precision": 1,
+          "recall": 0.5,
+          "f1": 0.667,
+          "support": 2
+        },
+        "urgent": {
+          "precision": 0.667,
+          "recall": 1,
+          "f1": 0.8,
+          "support": 2
+        }
+      },
+      "confusion": {
+        "none": {
+          "none": 10,
+          "watch": 1,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "watch": {
+          "none": 0,
+          "watch": 1,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "elevated": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 1,
+          "urgent": 1
+        },
+        "urgent": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 0,
+          "urgent": 2
+        }
+      },
+      "labels": [
+        "none",
+        "watch",
+        "elevated",
+        "urgent"
+      ]
+    },
+    "mood": {
+      "n": 16,
+      "accuracy": 0.875,
+      "macroF1": 0.914,
+      "perClass": {
+        "bright": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 3
+        },
+        "steady": {
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 1
+        },
+        "unsettled": {
+          "precision": 0.8,
+          "recall": 0.8,
+          "f1": 0.8,
+          "support": 5
+        },
+        "heavy": {
+          "precision": 0.857,
+          "recall": 0.857,
+          "f1": 0.857,
+          "support": 7
+        }
+      },
+      "confusion": {
+        "bright": {
+          "bright": 3,
+          "steady": 0,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "steady": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "unsettled": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 4,
+          "heavy": 1
+        },
+        "heavy": {
+          "bright": 0,
+          "steady": 0,
+          "unsettled": 1,
+          "heavy": 6
+        }
+      },
+      "labels": [
+        "bright",
+        "steady",
+        "unsettled",
+        "heavy"
+      ]
+    },
+    "safety": {
+      "urgentRecall": 1,
+      "highRiskRecall": 1,
+      "missedHighRisk": [],
+      "falseAlarms": [],
+      "urgentN": 2,
+      "highRiskN": 4
+    },
+    "mae": 6.688,
+    "misses": [],
+    "alarms": [],
+    "n": 16
+  },
+  "knownDifficulties": [
+    {
+      "id": "ambivalent-protective",
+      "label": "Ambivalent protective statements",
+      "detail": "\"I do not want to die, I just want the pain to stop\" is simultaneously protective and high-risk. The rule layer treats it as protective; in the test set it is labelled as distress, not risk. A clinician would explore it further — the app never treats \"no risk\" as an all-clear."
+    },
+    {
+      "id": "third-party",
+      "label": "Third-party risk",
+      "detail": "Entries about someone else (\"my cousin said there is no reason to live\") are held at \"watch\" so the writer is not flagged, while support guidance is still offered. The subject classifier is rule-based and will miss reported speech in long paragraphs."
+    },
+    {
+      "id": "figurative",
+      "label": "Figurative and cultural language",
+      "detail": "Idioms (\"to die for\", \"killing it\", \"when I die…\") are suppressed by an explicit list. Any idiom not on that list can be misread; the suppress list is the most frequently edited file in the engine."
+    },
+    {
+      "id": "sarcasm",
+      "label": "Sarcasm and irony",
+      "detail": "Inherited from both VADER and lexicon approaches: \"great, another power cut\" reads as positive. Production plans use a fine-tuned transformer with sarcasm-annotated data; the rule engine cannot fix this."
+    },
+    {
+      "id": "labels",
+      "label": "Label subjectivity",
+      "detail": "The in-house eval labels were written by one annotator. Mood bands are judgement calls at the boundary. A real validation needs at least two annotators per item, a disagreement adjudication step, and Ghanaian clinicians on the panel."
+    }
+  ]
+}
