@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { MapPin, Navigation, Phone, Crosshair } from 'lucide-react';
 import { useStore } from '../data/store';
 import { formatKm, rankFacilities, regionOrigin } from '../lib/geo';
-import { useLocation } from '../lib/useLocation';
+import { useGeoLocation } from '../lib/useGeoLocation';
 import { HELPLINE_TEXT, HELPLINE_TEL, NEAREST_DISCLAIMER, REGIONS, type Region } from '../data/facilities';
 
 /**
@@ -13,7 +13,7 @@ import { HELPLINE_TEXT, HELPLINE_TEL, NEAREST_DISCLAIMER, REGIONS, type Region }
 export default function NearestHelp({ compact = false }: { compact?: boolean }) {
   const { state, updateSettings } = useStore();
   const saved = state.settings.location;
-  const { status, message, request } = useLocation();
+  const { status, message, request } = useGeoLocation();
   const [region, setRegion] = useState<Region | ''>('');
 
   const locate = async () => {

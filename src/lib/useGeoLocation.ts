@@ -14,7 +14,7 @@ const COPY: Record<Exclude<LocationStatus, 'idle' | 'locating' | 'ready'>, strin
  * Browser geolocation with honest failure states. Coordinates never leave the
  * device: distance is computed locally against a bundled facility list.
  */
-export function useLocation() {
+export function useGeoLocation() {
   const [status, setStatus] = useState<LocationStatus>('idle');
   const [coords, setCoords] = useState<GeoPoint | null>(null);
   const [message, setMessage] = useState<string | null>(null);
