@@ -110,7 +110,7 @@ and escalates on composites such as intent plus planning language. Every contrib
 quoted phrase, and the writer can override the band.
 
 Measured on a 30-case held-out split: risk-tier accuracy 90%, urgent recall 100%, high-risk recall 100%, mood-band
-agreement 73% (MAE 9.2). The blind split that was run once mid-build scored much worse at first — 33% urgent recall —
+agreement 77% (MAE 8.8). Across all 82 cases: 91.5% risk accuracy and 100% urgent recall. The blind split that was run once mid-build scored much worse at first — 33% urgent recall —
 and that first-run result is published on the model card and in `docs/RESEARCH.md`. In-house numbers are a pipeline
 check, not clinical validation.
 

@@ -149,10 +149,16 @@ protocol (see `docs/ROADMAP.md` Stage 2 and 8).
 
 | Split | n | Risk accuracy | Risk macro-F1 | Urgent recall | Elevated+urgent recall | Mood accuracy | Mood MAE |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Dev (tuned) | 36 | 88.9% | 0.803 | 80% | 100% | 77.8% | 9.7 |
-| Test (held out) | 30 | 90.0% | 0.847 | 100% | 100% | 73.3% | 9.2 |
+| Dev (tuned) | 36 | 94.4% | 0.881 | 100% | 100% | 83.3% | 7.6 |
+| Test (held out) | 30 | 90.0% | 0.847 | 100% | 100% | 76.7% | 8.8 |
 | Blind (first run) | 16 | 68.8% | 0.575 | **33%** | **60%** | 56.3% | 14.9 |
 | Blind (after fixes, no longer blind) | 16 | 87.5% | 0.847 | 100% | 100% | 62.5% | 11.4 |
+| All cases | 82 | 91.5% | 0.879 | 100% | 100% | 76.8% | 8.8 |
+
+One dev case (`d34`, “I laughed with my friends today but I still want to die”) was mislabelled `none` in the first
+draft. It was corrected to `urgent` on review and left in dev, not moved to test. The three remaining dev disagreements
+are all cases where the engine tiers *higher* than the label — a protective statement (“I am suicidal but I would not act
+on it”) and a Pidgin wish not to wake up. We keep the upward disagreement rather than tune it away.
 
 ### 6.3 What the blind run exposed
 
