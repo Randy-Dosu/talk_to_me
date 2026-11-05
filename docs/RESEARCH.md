@@ -257,3 +257,28 @@ corpus were written by the build team. Treat this document as a design rationale
    suicide attempt or suicide death?* (2013) and related validation literature.
 10. Mental Health Authority, Ghana — national helpline. https://www.mha-ghana.com/
 11. Accra Psychiatric Hospital — contacts and emergency service. https://accrapsychiatrichospital.org/contacts/
+
+
+### 9.1 The conversation layer
+
+Two things are easy to conflate: *reading* an entry and *replying* to it. The app keeps them separate on purpose.
+
+| Option | What it is good at | Why it is not the default here |
+| --- | --- | --- |
+| On-device reflection (shipped) | Deterministic, auditable, offline, no data egress | Plain. It reflects and asks, it does not converse freely |
+| General chat model via Hugging Face (opt-in) | Natural replies, better turn-taking | Sends entry text to a third party; general models are not clinically validated and can give advice |
+| Mental-health-tuned checkpoints | Narrow domain behaviour | Trained mostly on US/UK English forum text; no Ghanaian Pidgin or Twi evaluation; licence and provenance vary |
+| Fine-tuned model on Ghanaian data | The actual goal | Requires ethics approval, native-speaker annotation and a held-out set — Stage 8 |
+
+Datasets that are commonly proposed for this work, and the caveats that come with them:
+
+| Dataset (HF) | Content | Caveat |
+| --- | --- | --- |
+| `nbertagnolli/counsel-chat` | Therapist answers scraped from counselchat.com | Answers are one therapist's opinion, not guidelines; scraped consent is unclear; cite the author |
+| `facebook/empathetic_dialogues` | ~25k short emotional conversations | Empathy, not clinical care; US crowdworkers; emotional situations, not disorders |
+| `google/goemotions` | 58k Reddit comments, 27 emotions | Emotion labels only; no replies; English Reddit demographics |
+| `Amod/mental_health_counseling_conversations` | Q&A pairs from counselling forums | Small, unverified, not a training set for safety-critical replies |
+
+**Decision.** The demo ships no clinical model. It ships a transparent reflection plus an opt-in adapter, so the
+choice to send text off-device is explicit and reversible. A model that *sounds* better is not automatically safer:
+the failure mode of a fluent reply to a suicidal message is worse than a plain one.

@@ -202,6 +202,43 @@ export default function ModelCard() {
         </div>
       </div>
 
+      {/* ---------------- Conversation ---------------- */}
+      <section className="mt-9">
+        <SectionHeading
+          eyebrow="Conversation"
+          title="Who writes the reply under your entry."
+          blurb="The reading and the reply are separate systems. The reading never leaves the device; the reply can, but only if you turn that on."
+        />
+        <div className="mt-4 grid gap-3 md:grid-cols-3">
+          <div className="card-flat p-4">
+            <p className="text-[0.72rem] uppercase tracking-[0.12em] text-ink-muted">Default · on-device</p>
+            <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink-soft">
+              A short reflection phrased from the reading and the band. No diagnosis, no advice, no network. It is
+              deliberately plain — it is not pretending to be a therapist.
+            </p>
+          </div>
+          <div className="card-flat p-4">
+            <p className="text-[0.72rem] uppercase tracking-[0.12em] text-ink-muted">Optional · Hugging Face</p>
+            <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink-soft">
+              Settings can route replies to a chat-completions model with your own token. Replies are capped at three
+              sentences, filtered for diagnostic claims, and never requested for crisis language.
+            </p>
+          </div>
+          <div className="card-flat p-4">
+            <p className="text-[0.72rem] uppercase tracking-[0.12em] text-ink-muted">Never sent</p>
+            <p className="mt-1.5 text-[0.82rem] leading-relaxed text-ink-soft">
+              Urgent and elevated entries, anything with a risk match, and a keyword backstop for self-harm phrasing
+              all stay local. The crisis card is assembled on the device.
+            </p>
+          </div>
+        </div>
+        <p className="mt-3 text-[0.72rem] leading-relaxed text-ink-muted">
+          No clinical model is shipped, because none has been validated on Ghanaian English or Pidgin. A
+          general-purpose chat model is not a substitute for that work; see docs/RESEARCH.md §9 and the reference
+          path in <code className="rounded bg-ink/5 px-1">ml/</code>.
+        </p>
+      </section>
+
       {/* ---------------- Evaluation detail ---------------- */}
       <section className="mt-9">
         <SectionHeading

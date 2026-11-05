@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   LineChart,
   Mic,
+  Settings2,
   Sparkles,
   Trash2,
 } from 'lucide-react';
@@ -17,11 +18,19 @@ import VoiceSheet from '../components/VoiceSheet';
 import { Mark } from '../components/Logo';
 import { MoodBadge } from '../components/ui';
 import { useStore, useSortedEntries } from '../data/store';
+import { getHfToken, hfReply, maySendToModel } from '../lib/hfChat';
 import { dayKey, formatDay, formatTime, greeting } from '../engine/id';
 import { bandChip } from '../lib/tone';
 import type { JournalEntry, MoodBand } from '../engine/types';
 
 const BANDS: MoodBand[] = ['heavy', 'unsettled', 'steady', 'bright'];
+
+interface ReplyState {
+  status: 'thinking' | 'ready';
+  text: string;
+  source: 'local' | 'hf';
+  note?: string;
+}
 
 function reflection(entry: JournalEntry): string {
   const { risk, moodBand, distress } = entry.analysis;
@@ -56,6 +65,7 @@ export default function Chat() {
   const [openWhy, setOpenWhy] = useState<string | null>(null);
   const [correcting, setCorrecting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const [replies, setReplies] = useState<Record<string, ReplyState>>({});
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -87,13 +97,38 @@ export default function Chat() {
 
   const name = state.settings.displayName || 'friend';
 
-  const send = () => {
+  const send = async () => {
     const entry = addEntry(text, usedVoice ? 'voice' : 'typed');
     if (!entry) return;
     setText('');
     setUsedVoice(false);
     setFilter(null);
     inputRef.current?.focus();
+
+    const token = getHfToken();
+    if (!state.settings.ai.enabled || !token || !maySendToModel(entry.analysis, entry.text)) return;
+
+    setReplies((prev) => ({
+      ...prev,
+      [entry.id]: { status: 'thinking', text: '', source: 'hf' },
+    }));
+    const result = await hfReply({
+      text: entry.text,
+      analysis: entry.analysis,
+      model: state.settings.ai.model,
+      token,
+    });
+    setReplies((prev) => ({
+      ...prev,
+      [entry.id]: result.ok
+        ? { status: 'ready', text: result.text, source: 'hf' }
+        : {
+            status: 'ready',
+            text: reflection(entry),
+            source: 'local',
+            note: result.error ?? 'The model did not answer.',
+          },
+    }));
   };
 
   return (
@@ -146,6 +181,9 @@ export default function Chat() {
                 </Link>
                 <Link to="/safety" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink-soft hover:bg-ink/5">
                   <LifeBuoy size={14} /> Safety
+                </Link>
+                <Link to="/settings" className="flex items-center gap-2 rounded-lg px-2 py-1.5 text-ink-soft hover:bg-ink/5">
+                  <Settings2 size={14} /> Settings
                 </Link>
               </div>
             </div>
@@ -270,7 +308,17 @@ export default function Chat() {
                         <Mark size={22} />
                       </span>
                       <div className="min-w-0 max-w-[92%]">
-                        <p className="text-[0.92rem] leading-relaxed text-ink">{reflection(entry)}</p>
+                        {replies[entry.id]?.status === 'thinking' ? (
+                          <p className="flex items-center gap-1 py-1 text-ink-muted" aria-label="Writing a reply">
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-muted [animation-delay:-0.2s]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-muted [animation-delay:-0.1s]" />
+                            <span className="h-1.5 w-1.5 animate-bounce rounded-full bg-ink-muted" />
+                          </p>
+                        ) : (
+                          <p className="text-[0.92rem] leading-relaxed text-ink">
+                            {replies[entry.id]?.text ?? reflection(entry)}
+                          </p>
+                        )}
 
                         <div className="mt-2 flex flex-wrap items-center gap-2">
                           <MoodBadge band={shownBand} />
@@ -307,6 +355,14 @@ export default function Chat() {
                             </Link>
                           </div>
                         )}
+
+                        <p className="mt-1 text-[0.64rem] text-ink-muted">
+                          {replies[entry.id]?.source === 'hf'
+                            ? `via ${state.settings.ai.model}`
+                            : replies[entry.id]?.note
+                              ? `${replies[entry.id]?.note} · on-device reading`
+                              : 'on-device reading'}
+                        </p>
 
                         <div className="mt-2 flex flex-wrap items-center gap-3 text-[0.72rem]">
                           <button

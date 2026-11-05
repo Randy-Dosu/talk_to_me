@@ -12,6 +12,7 @@ import Trusted from './pages/Trusted';
 import ModelCard from './pages/ModelCard';
 import Research from './pages/Research';
 import Privacy from './pages/Privacy';
+import Settings from './pages/Settings';
 import About from './pages/About';
 
 function ScrollManager() {
@@ -71,6 +72,7 @@ export default function App() {
           <Route path="model" element={<ModelCard />} />
           <Route path="research" element={<Research />} />
           <Route path="privacy" element={<Privacy />} />
+          <Route path="settings" element={<Settings />} />
           <Route path="about" element={<About />} />
           <Route path="welcome" element={<Landing />} />
           <Route path="*" element={<NotFound />} />

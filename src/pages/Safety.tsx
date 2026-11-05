@@ -5,6 +5,7 @@ import { Check, ChevronRight, Copy, HeartHandshake, Phone, Plus, ShieldCheck, Tr
 import { useStore } from '../data/store';
 import { CONVERSATION_STARTERS, COPING_TIPS, GROUNDING_STEPS, HELPLINE_NOTE, RESOURCES } from '../data/resources';
 import CrisisCard from '../components/CrisisCard';
+import NearestHelp from '../components/NearestHelp';
 import BreathingExercise from '../components/BreathingExercise';
 import { SectionHeading } from '../components/ui';
 
@@ -148,6 +149,18 @@ export default function Safety() {
           ))}
         </div>
         <p className="mt-3 text-[0.7rem] leading-relaxed text-ink-muted">{HELPLINE_NOTE}</p>
+      </section>
+
+      {/* ---------- Nearby services ---------- */}
+      <section id="nearby" className="mt-8 scroll-mt-24">
+        <SectionHeading
+          eyebrow="Close to you"
+          title="A clinic, not just a phone number."
+          blurb="Ranked from a bundled list of Ghanaian mental-health services, using a location you keep on this device."
+        />
+        <div className="mt-4">
+          <NearestHelp />
+        </div>
       </section>
 
       {/* ---------- Safety plan ---------- */}

@@ -158,6 +158,21 @@ export interface SafetyPlan {
   professional: string;
 }
 
+export interface SavedLocation {
+  lat: number;
+  lng: number;
+  /** Human label: 'Accra' from GPS, or the region name when picked manually. */
+  label: string;
+  source: 'gps' | 'manual';
+  updatedAt: string;
+}
+
+export interface AiSettings {
+  /** Conversation via the Hugging Face Inference API. Off unless explicitly enabled. */
+  enabled: boolean;
+  model: string;
+}
+
 export interface Settings {
   displayName: string;
   /** Chosen greeting tone: Twi/English mix by default. */
@@ -169,6 +184,9 @@ export interface Settings {
   showResourcesOnOpen: boolean;
   onboarded: boolean;
   clinicianMode: boolean;
+  /** Stored locally only; used to rank nearby clinics. Never transmitted. */
+  location: SavedLocation | null;
+  ai: AiSettings;
 }
 
 export interface AlertEvent {

@@ -278,6 +278,7 @@ describe('route smoke tests', () => {
     ['/research', /what we read before we built this/i],
     ['/privacy', /nobody is reading this over your shoulder/i],
     ['/about', /built for the conversation we are not having/i],
+    ['/settings', /two optional things/i],
     ['/does-not-exist', /this page is not here/i],
   ] as const;
 
@@ -420,6 +421,7 @@ describe('signup', () => {
 
     await user.type(screen.getByLabelText(/what should i call you/i), 'Kofi');
     await user.click(screen.getByRole('button', { name: /english \+ twi/i }));
+    await user.selectOptions(screen.getByLabelText(/which region are you in/i), 'Ashanti');
     await user.type(screen.getByLabelText(/trusted contact name/i), 'Auntie Efua');
     await user.type(screen.getByLabelText(/trusted contact phone/i), '+233240000000');
     await user.click(screen.getByRole('checkbox', { name: /they have agreed/i }));
@@ -434,6 +436,7 @@ describe('signup', () => {
     expect(stored.settings.language).toBe('tw-en');
     expect(stored.settings.trusted.name).toBe('Auntie Efua');
     expect(stored.safetyPlan.people[0].name).toBe('Auntie Efua');
+    expect(stored.settings.location.label).toBe('Ashanti');
   });
 
   it('sends the first message and answers it in the chat', async () => {

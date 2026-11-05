@@ -46,6 +46,8 @@ const DEFAULT_SETTINGS: Settings = {
   showResourcesOnOpen: false,
   onboarded: false,
   clinicianMode: false,
+  location: null,
+  ai: { enabled: false, model: 'HuggingFaceH4/zephyr-7b-beta' },
 };
 
 const DEFAULT_PLAN: SafetyPlan = {

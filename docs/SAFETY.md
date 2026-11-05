@@ -115,3 +115,38 @@ ideally fetch from a maintained endpoint rather than hard-coding.**
 
 Nkommo is not an emergency service. It cannot call for help, cannot detect a crisis it is not told about, and does not
 run in the background. If you are in danger now, call **112** or **0800 678 678**.
+
+
+---
+
+## 10. Nearest-service recommendation
+
+The app ranks a **bundled list** of Ghanaian mental-health services (17 sites, 16 regions) against a position the
+person chooses to share. It is a ranking aid, not navigation.
+
+| Rule | Why |
+| --- | --- |
+| Coordinates are approximate town-centre positions | A few hundred metres does not change which hospital is closest, but it is not a route. The UI says this. |
+| Straight-line distance only | Travel time in Accra traffic can triple a 6 km trip. The UI says "straight-line, not travel time". |
+| Phone numbers appear only where publicly verifiable | The three verified switchboards are Accra Psychiatric, Korle Bu and Komfo Anokye. Everywhere else the card points to **0800 678 678** rather than inventing a number. |
+| Region fallback is first-class | Geolocation is blocked in many embedded browsers. Picking a region must give the same quality of answer, not a dead end. |
+| Location is stored locally and never transmitted | There is no geocoding request, no map tile, no analytics event. "Forget" clears it. |
+| The card never replaces the helpline | Numbers come first; the clinic is the second step, with "call before you travel". |
+
+**Not done, deliberately:** no turn-by-turn directions, no "open now" claim, no real-time bed availability. Each of those
+requires a maintained data source and a service-level commitment the project cannot make yet. See ROADMAP Stage 8.
+
+## 11. Third-party model egress (Hugging Face)
+
+Model replies are **off by default**. When enabled in Settings:
+
+1. `maySendToModel()` must pass: risk tier `none`/`watch`, **no** risk-pattern matches, and no match against a
+   self-harm keyword backstop that also covers phrasing the tiering scores as `none` (e.g. "how I would do it").
+   Failing any of those, the entry is never sent — the local crisis path handles it.
+2. The system prompt forbids diagnosis, medication, instructions and advice; the reply is capped at three sentences.
+3. `sanitizeReply()` drops any reply containing a diagnostic claim ("you have depression") and rejects empty output.
+4. The token lives in **sessionStorage** only, and "turn off and forget" clears it.
+5. Failures (401/429/timeout/no network) fall back to the on-device reflection and **say so** under the message.
+
+The privacy promise changes when this is on, so the consent copy says that in plain words before the toggle can be
+enabled. The product default remains: nothing leaves the device.

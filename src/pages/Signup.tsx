@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Lock, Phone, ShieldCheck, UserPlus } from 'lucide-react';
+import { ArrowRight, Check, Lock, MapPin, Phone, ShieldCheck, UserPlus } from 'lucide-react';
 import { useStore } from '../data/store';
 import { Mark } from '../components/Logo';
+import { REGIONS, REGION_CENTROIDS, type Region } from '../data/facilities';
 
 /**
  * Everything Nkommo needs lives on one page. Nothing is asked again inside the
@@ -17,6 +18,7 @@ export default function Signup() {
   const [contactPhone, setContactPhone] = useState(state.settings.trusted?.phone ?? '');
   const [consented, setConsented] = useState(Boolean(state.settings.trusted?.enabled));
   const [acknowledged, setAcknowledged] = useState(state.settings.onboarded);
+  const [region, setRegion] = useState<Region | ''>((state.settings.location?.label as Region) ?? '');
   const [showErrors, setShowErrors] = useState(false);
 
   const nameOk = alias.trim().length > 0;
@@ -29,6 +31,7 @@ export default function Signup() {
       return;
     }
     const contact = contactName.trim();
+    const centroid = region ? REGION_CENTROIDS[region] : null;
     updateSettings({
       displayName: alias.trim(),
       language,
@@ -43,6 +46,15 @@ export default function Signup() {
             shareJournals: false,
           }
         : state.settings.trusted,
+      location: centroid
+        ? {
+            lat: centroid.lat,
+            lng: centroid.lng,
+            label: region,
+            source: 'manual',
+            updatedAt: new Date().toISOString(),
+          }
+        : state.settings.location,
     });
     if (contact) {
       updatePlan({ people: [{ name: contact, phone: contactPhone.trim(), note: 'Added at signup' }] });
@@ -109,7 +121,32 @@ export default function Signup() {
             ))}
           </div>
 
-          {/* 3. trusted contact */}
+          {/* 3. region */}
+          <div className="mt-5 flex items-center gap-1.5">
+            <MapPin size={14} className="text-forest" />
+            <label htmlFor="region" className="text-[0.82rem] font-medium text-ink">
+              Which region are you in?
+            </label>
+            <span className="ml-auto text-[0.66rem] uppercase tracking-[0.08em] text-ink-muted">optional</span>
+          </div>
+          <p className="mt-0.5 text-[0.74rem] text-ink-muted">
+            Used on this device to put the nearest clinic in your crisis card. Never sent anywhere.
+          </p>
+          <select
+            id="region"
+            value={region}
+            onChange={(event) => setRegion(event.target.value as Region | '')}
+            className="field mt-2 w-full text-[0.84rem]"
+          >
+            <option value="">Prefer not to say</option>
+            {REGIONS.map((name) => (
+              <option key={name} value={name}>
+                {name}
+              </option>
+            ))}
+          </select>
+
+          {/* 4. trusted contact */}
           <div className="mt-5 flex items-center gap-1.5">
             <UserPlus size={14} className="text-forest" />
             <p className="text-[0.82rem] font-medium text-ink">Someone we can nudge</p>
@@ -151,7 +188,7 @@ export default function Signup() {
           )}
           {showErrors && !contactOk && <p className="mt-1 text-[0.72rem] text-rose">Ask them first, then tick the box.</p>}
 
-          {/* 4. acknowledgement */}
+          {/* 5. acknowledgement */}
           <label className="mt-5 flex cursor-pointer items-start gap-2.5 rounded-xl border border-line bg-paper-deep/40 p-3">
             <input
               type="checkbox"

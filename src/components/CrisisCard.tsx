@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { ArrowRight, HeartHandshake, Phone, ShieldCheck } from 'lucide-react';
 import { RESOURCES, HELPLINE_NOTE } from '../data/resources';
+import NearestHelp from './NearestHelp';
 
 /**
  * The most important component in the app.
@@ -69,6 +70,10 @@ export default function CrisisCard({
                   <Phone size={16} className="shrink-0 text-ink-muted transition-colors group-hover:text-forest" />
                 </a>
               ))}
+            </div>
+
+            <div className="mt-3 rounded-2xl border border-line/80 bg-white/60 p-3">
+              <NearestHelp compact />
             </div>
 
             <div className="mt-4 flex flex-wrap items-center gap-2">

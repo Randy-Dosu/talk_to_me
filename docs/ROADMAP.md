@@ -214,3 +214,27 @@ They are not wired into the demo.
 4. Offline PWA install + Android wrapper with on-device speech, so it works without data.
 5. Accessibility pass: screen-reader labels, 4.5:1 contrast audit, low-literacy reading level, Twi UI strings.
 6. A tiny, optional, end-to-end encrypted export to a clinician PDF.
+
+
+---
+
+## Stage 7.5 — Location-aware referral and optional model conversation (built)
+
+| Piece | State |
+| --- | --- |
+| `src/data/facilities.ts` — 17 service points, 16 regions, coordinates + verified phones only | ✅ |
+| `src/lib/geo.ts` — haversine, ranking, region fallback, human-readable distance | ✅ tested |
+| `src/lib/useLocation.ts` — permission states: denied, unavailable, timeout, ready | ✅ tested |
+| `NearestHelp` in the crisis card and on `/safety` | ✅ |
+| `src/lib/hfChat.ts` — chat-completions adapter, local-only gate, reply sanitiser | ✅ tested with a mocked endpoint |
+| `/settings` — consent-gated token, model id, test connection, forget token | ✅ |
+
+What production still needs:
+
+1. **Verify the facility list** with the Mental Health Authority and add district-level sites. Current coordinates are
+   town-centre approximations.
+2. **A validated conversation model.** Any HF chat model is a general-purpose model; none of the mental-health-tuned
+   checkpoints has been evaluated on Ghanaian English or Pidgin. Until it is, the on-device reflection stays default.
+3. **A server-side proxy for model calls** if this ever ships to users: a token in the browser is a hobby-project
+   pattern, not a product one. The proxy must also strip identifiers and enforce the crisis block server-side.
+4. **Cost and abuse controls** (per-user quotas) before enabling a paid endpoint for the public.

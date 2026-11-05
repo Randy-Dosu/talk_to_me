@@ -199,6 +199,7 @@ export default function Layout() {
               <li><Link to="/model" className="hover:text-forest">Model card &amp; evaluation</Link></li>
               <li><Link to="/research" className="hover:text-forest">Research notes</Link></li>
               <li><Link to="/privacy" className="hover:text-forest">Privacy &amp; data</Link></li>
+              <li><Link to="/settings" className="hover:text-forest">Settings</Link></li>
             </ul>
           </div>
         </div>

@@ -20,6 +20,8 @@ serving this demo.
 | Chat-style journal: one screen, local-only storage, delete/edit | ✅ working |
 | One-page signup: alias, language, trusted contact, acknowledgement | ✅ working |
 | Voice journalling: full-screen capture sheet → speech-to-text → editable entry | ✅ working (browser-dependent) |
+| Nearest clinic ranking from device location (or a chosen region), offline | ✅ working + unit tested |
+| Optional Hugging Face replies, with crisis text blocked from leaving the device | ✅ code + tests; needs network + token |
 | Analysis engine: valence, negation, intensifiers, 11 emotions, distress index | ✅ working + unit tested |
 | Safety pass: 3 risk tiers, sentence-level suppression, third-person attribution | ✅ working + unit tested |
 | Explainability: every reading expands into the phrases behind it | ✅ working |
@@ -48,7 +50,7 @@ Other scripts:
 
 ```bash
 npm run build      # typecheck + production build
-npm test           # 63 tests: engine, clinical scoring, trends, chat flows, route smoke
+npm test           # 82 tests: engine, geo ranking, HF adapter, chat flows, route smoke
 npm run eval       # regenerates src/engine/eval/report.json (the model card numbers)
 npm run typecheck
 ```
@@ -65,7 +67,7 @@ skip signup, or load fictional sample data from the empty chat to see the patter
 - **Tailwind CSS v4** — design tokens in `src/index.css` (warm paper, forest, clay, gold; Fraunces + Inter).
 - **Recharts** — mood trend chart.
 - **Custom engine in `src/engine`** — no runtime model download, no network, deterministic and explainable.
-- **Vitest + Testing Library + jsdom** — 63 tests including the signup, chat, voice, check-in and safety flows.
+- **Vitest + Testing Library + jsdom** — 82 tests including the signup, chat, voice, location-ranking, HF-adapter and safety flows.
 - **Python reference path in `ml/`** — FastAPI service and a RoBERTa/GoEmotions fine-tuning script for the production
   model, kept separate so it never pretends to be what the demo runs.
 
