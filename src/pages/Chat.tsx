@@ -177,7 +177,7 @@ export default function Chat() {
               )}
             </header>
 
-            <div className="flex-1 space-y-6 py-5">
+            <div role="log" aria-live="polite" aria-label="Conversation" className="flex-1 space-y-6 py-5">
               {visible.length === 0 && (
                 <div className="max-w-lg">
                   <div className="flex items-start gap-3">
