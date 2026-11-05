@@ -92,7 +92,7 @@ export interface StoreApi {
   state: StoreShape;
   addEntry: (text: string, source?: 'typed' | 'voice') => JournalEntry | null;
   removeEntry: (entryId: string) => void;
-  setFeltMood: (entryId: string, band: MoodBand) => void;
+  setFeltMood: (entryId: string, band: MoodBand | null) => void;
   addCheckIn: (scale: ScaleId, answers: number[]) => CheckIn;
   updateSettings: (patch: Partial<Settings>) => void;
   updatePlan: (patch: Partial<SafetyPlan>) => void;
@@ -109,6 +109,7 @@ const StoreContext = createContext<StoreApi | null>(null);
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<StoreShape>(load);
   const firstRender = useRef(true);
+  const erased = useRef(false);
 
   useEffect(() => {
     if (firstRender.current) {
@@ -116,6 +117,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       return;
     }
     try {
+      if (erased.current) {
+        // A deliberate erase: leave no record behind, not even an empty one.
+        erased.current = false;
+        window.localStorage.removeItem(STORAGE_KEY);
+        return;
+      }
       window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     } catch {
       // Storage full or blocked (private mode). The session still works.
@@ -141,10 +148,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, entries: prev.entries.filter((e) => e.id !== entryId) }));
   }, []);
 
-  const setFeltMood = useCallback((entryId: string, band: MoodBand) => {
+  const setFeltMood = useCallback((entryId: string, band: MoodBand | null) => {
     setState((prev) => ({
       ...prev,
-      entries: prev.entries.map((e) => (e.id === entryId ? { ...e, feltMood: band } : e)),
+      entries: prev.entries.map((e) => {
+        if (e.id !== entryId) return e;
+        if (band === null) {
+          const { feltMood: _discarded, ...rest } = e;
+          return rest;
+        }
+        return { ...e, feltMood: band };
+      }),
     }));
   }, []);
 
@@ -212,10 +226,14 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       checkins: prev.checkins.filter((c) => !c.id.startsWith('demo-')),
       alerts: [],
       demoMode: false,
+      // The sample data seeded the plan too; leaving "Auntie Efua" behind
+      // would quietly invent a contact for a real user.
+      safetyPlan: { ...DEFAULT_PLAN },
     }));
   }, []);
 
   const wipe = useCallback(() => {
+    erased.current = true;
     setState({ ...DEFAULT_STORE, settings: { ...DEFAULT_SETTINGS } });
     try {
       window.localStorage.removeItem(STORAGE_KEY);

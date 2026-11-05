@@ -20,7 +20,7 @@ export interface EvalCase {
   mood: MoodBand;
   risk: RiskLevel;
   context: 'en' | 'gh';
-  split: 'dev' | 'test';
+  split: 'dev' | 'test' | 'blind';
   note?: string;
 }
 
@@ -65,7 +65,9 @@ export const EVAL_CORPUS: EvalCase[] = [
   { id: 'd31', split: 'dev', context: 'en', mood: 'heavy', risk: 'none', note: 'ambivalent protective statement', text: 'I do not want to die. I just want the pain to stop. I am so tired of hurting and I do not know how to explain it to anyone.' },
   { id: 'd32', split: 'dev', context: 'en', mood: 'heavy', risk: 'elevated', text: 'I am suicidal but I would not act on it. I just needed to write it somewhere. The thoughts come at night and they are loud.' },
   { id: 'd33', split: 'dev', context: 'en', mood: 'bright', risk: 'none', note: 'positive idiom: killing it', text: 'Killing it at work this week. My manager said the report was excellent. I am proud of myself, honestly.' },
-  { id: 'd34', split: 'dev', context: 'en', mood: 'bright', risk: 'none', text: 'I laughed with my friends today but I still want to die.' },
+  // Corrected mislabel (review 2026-11-05): this states active ideation, so it
+  // is urgent regardless of the laughing clause. Kept in dev, not test.
+  { id: 'd34', split: 'dev', context: 'en', mood: 'heavy', risk: 'urgent', text: 'I laughed with my friends today but I still want to die.' },
   { id: 'd35', split: 'dev', context: 'en', mood: 'heavy', risk: 'urgent', text: 'I have not left my bed in three days. I have been writing goodbye messages in my head. I do not think I can keep going.' },
   { id: 'd36', split: 'dev', context: 'en', mood: 'steady', risk: 'none', text: 'Suicide awareness training at work today. Heavy topic, but I am glad we talked about it openly. I am okay.' },
 
@@ -104,6 +106,28 @@ export const EVAL_CORPUS: EvalCase[] = [
   { id: 't28', split: 'test', context: 'en', mood: 'heavy', risk: 'elevated', text: 'I am tired of living and I have nothing to live for. I would not call it a plan but the thought is there every single day.' },
   { id: 't29', split: 'test', context: 'gh', mood: 'bright', risk: 'none', text: 'My small sister passed her exams, we are all so proud of her. God is good. I feel hopeful for the first time in a while.' },
   { id: 't30', split: 'test', context: 'en', mood: 'unsettled', risk: 'none', text: 'I have been withdrawing from my friends. I leave messages on read for days. I know it is not good but talking feels like too much work.' },
+
+  /* ---------------- BLIND: written after tuning, evaluated once ----------------
+   * These were written fresh and run a single time at the end of the build. The
+   * first run is recorded in docs/RESEARCH.md §6; the stockpiling miss found
+   * there was then promoted into the dev split, as error analysis should.
+   */
+  { id: 'b01', split: 'blind', context: 'gh', mood: 'unsettled', risk: 'none', text: 'I dey feel somehow today. My chest dey tight and I no fit sleep. I dey think too much about money.' },
+  { id: 'b02', split: 'blind', context: 'en', mood: 'bright', risk: 'none', text: 'I had a good day at the shop. Sold plenty, one customer even bought me lunch. I am tired but happy.' },
+  { id: 'b03', split: 'blind', context: 'en', mood: 'heavy', risk: 'elevated', text: 'I keep thinking maybe everyone will be fine without me. I do not want to be here.' },
+  { id: 'b04', split: 'blind', context: 'en', mood: 'heavy', risk: 'urgent', text: 'I want to end my life. I have thought about it for weeks and I have decided.' },
+  { id: 'b05', split: 'blind', context: 'en', mood: 'unsettled', risk: 'watch', note: 'third-party risk', text: 'My roommate has been saying he wants to die and I do not know how to help him.' },
+  { id: 'b06', split: 'blind', context: 'en', mood: 'steady', risk: 'none', note: 'figurative "tired I could die"', text: 'I am so tired I could die. Work was mad today but I am grateful for the small salary.' },
+  { id: 'b07', split: 'blind', context: 'en', mood: 'steady', risk: 'none', text: 'It is well. I did not get the job but I have my health and my family. Tomorrow I will try again.' },
+  { id: 'b08', split: 'blind', context: 'en', mood: 'heavy', risk: 'urgent', text: 'I have been cutting myself when the thoughts get loud. I am scared.' },
+  { id: 'b09', split: 'blind', context: 'en', mood: 'heavy', risk: 'none', text: 'I feel nothing. I wake up, go to work, come home, sleep. I am a machine now.' },
+  { id: 'b10', split: 'blind', context: 'en', mood: 'heavy', risk: 'none', text: 'The pressure from my father is too much. He says I am a disappointment. I cried in the bathroom at work today.' },
+  { id: 'b11', split: 'blind', context: 'en', mood: 'heavy', risk: 'watch', text: 'I have not eaten in two days and I cannot leave my bed. I do not see the point anymore.' },
+  { id: 'b12', split: 'blind', context: 'en', mood: 'steady', risk: 'none', text: 'I talked to my pastor today and he listened without judging me. I still feel low but I am not alone.' },
+  { id: 'b13', split: 'blind', context: 'en', mood: 'heavy', risk: 'elevated', text: 'Sometimes I wish I could sleep and never wake up. Not tonight though, I am just tired.' },
+  { id: 'b14', split: 'blind', context: 'gh', mood: 'bright', risk: 'none', text: 'I passed my exams! Medaase. My mother cried and I am so proud.' },
+  { id: 'b15', split: 'blind', context: 'en', mood: 'unsettled', risk: 'none', note: 'protective but distressed', text: 'I am not okay. I have been crying every day and I feel empty. But I am not going to do anything to myself.' },
+  { id: 'b16', split: 'blind', context: 'en', mood: 'heavy', risk: 'urgent', note: 'stockpiling + planning', text: 'I keep buying pills and saving them. I know what I am planning. I feel calm about it.' },
 ];
 
 /** One-line error analysis lines surfaced in the model card. */

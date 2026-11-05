@@ -94,15 +94,18 @@ function printBlock(title: string, m: ReturnType<typeof summarise>) {
 
 const dev = EVAL_CORPUS.filter((c) => c.split === 'dev');
 const test = EVAL_CORPUS.filter((c) => c.split === 'test');
+const blind = EVAL_CORPUS.filter((c) => c.split === 'blind');
 const gh = EVAL_CORPUS.filter((c) => c.context === 'gh');
 
 const devResult = summarise(dev);
 const testResult = summarise(test);
+const blindResult = blind.length ? summarise(blind) : null;
 const allResult = summarise(EVAL_CORPUS);
 const ghResult = summarise(gh);
 
 printBlock('DEV split (rules were tuned against this)', devResult);
 printBlock('TEST split (held out from tuning)', testResult);
+if (blindResult) printBlock('BLIND split (written after tuning, run once)', blindResult);
 printBlock('ALL cases', allResult);
 printBlock('Ghanaian English / Pidgin subset', ghResult);
 
@@ -112,14 +115,18 @@ const report = {
   lexiconVersion: LEXICON_TAG,
   note:
     'In-house evaluation on hand-written cases by the builders of the engine. Rules were iterated on the dev split only. These numbers are a sanity check on the pipeline — they are not clinical validation and must not be presented as diagnostic accuracy.',
+  blindDisclosure:
+    'The blind split was written after tuning and run once. On that first, genuinely blind run: urgent recall 33% (1 of 3), elevated+urgent recall 60% (3 of 5), risk accuracy 69%, mood accuracy 56%. Two urgent gaps (ongoing self-harm phrasing, stockpiling plus concealed planning) and one elevated gap ("sleep and never wake up") were then fixed. Those fixes were made after seeing blind errors, so the current blind numbers are no longer an unbiased estimate; they are reported for completeness and the first-run figures above are the honest ones.',
   corpus: {
     total: EVAL_CORPUS.length,
     dev: dev.length,
     test: test.length,
+    blind: blind.length,
     ghanaianSubset: gh.length,
   },
   dev: devResult,
   test: testResult,
+  blind: blindResult,
   all: allResult,
   ghanaian: ghResult,
   knownDifficulties: KNOWN_DIFFICULTIES,

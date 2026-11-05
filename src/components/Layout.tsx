@@ -14,6 +14,8 @@ const NAV = [
   { to: '/model', label: 'Model card', icon: ShieldCheck },
 ];
 
+const TABS = NAV.slice(0, 4);
+
 export default function Layout() {
   const [open, setOpen] = useState(false);
   const { state, clearDemo } = useStore();
@@ -106,7 +108,7 @@ export default function Layout() {
         <div className="border-b border-gold/25 bg-gold/10">
           <div className="container-page flex flex-wrap items-center justify-between gap-2 py-2 text-[0.78rem] text-[#7a5a10]">
             <span>
-              <strong className="font-semibold">Sample data is loaded.</strong> Everything you see is fictional and stored only in this browser.
+              <strong className="font-semibold">Sample data is loaded.</strong> All fictional, stored in this browser only.
             </span>
             <button onClick={clearDemo} className="rounded-full border border-gold/40 px-2.5 py-1 font-medium hover:bg-gold/15">
               Clear sample data
@@ -119,13 +121,41 @@ export default function Layout() {
         <Outlet />
       </main>
 
-      <footer className="mt-20 border-t border-line/80 bg-paper-deep/50">
+      {/* mobile tab bar: the four things you reach for in a bad week */}
+      <nav
+        aria-label="Primary"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-paper/95 backdrop-blur-md lg:hidden"
+        style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
+      >
+        <div className="grid grid-cols-4">
+          {TABS.map((tab) => (
+            <NavLink
+              key={tab.to}
+              to={tab.to}
+              className={({ isActive }) =>
+                clsx(
+                  'flex flex-col items-center gap-1 py-2.5 text-[0.63rem] font-medium transition-colors',
+                  isActive ? 'text-forest' : 'text-ink-muted',
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <tab.icon size={19} strokeWidth={isActive ? 2.2 : 1.8} />
+                  {tab.label}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+      </nav>
+
+      <footer className="mb-16 mt-16 border-t border-line/80 bg-paper-deep/50 lg:mb-0 lg:mt-20">
         <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
             <Wordmark />
-            <p className="mt-4 max-w-sm text-[0.82rem] leading-relaxed text-ink-muted">
-              A private journal and mood tracker built for Ghana. Your words stay on your device.
-              Nkommo is a listening companion, not a doctor, and it cannot diagnose anything.
+            <p className="mt-3 max-w-xs text-[0.8rem] leading-relaxed text-ink-muted">
+              A private journal and mood tracker built for Ghana. Not a doctor. Not a crisis service.
             </p>
             <div className="mt-4 flex items-center gap-2 text-[0.75rem] text-ink-muted">
               <ShieldCheck size={14} className="text-sage" />

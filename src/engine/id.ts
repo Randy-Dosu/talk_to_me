@@ -15,13 +15,13 @@ export function dayKey(date: Date | string): string {
   return `${y}-${m}-${day}`;
 }
 
-export function startOfDay(date: Date): Date {
+export function startOfDay(date: Date | string): Date {
   const d = new Date(date);
   d.setHours(0, 0, 0, 0);
   return d;
 }
 
-export function addDays(date: Date, days: number): Date {
+export function addDays(date: Date | string, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
   return d;

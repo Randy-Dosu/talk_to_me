@@ -1,55 +1,57 @@
 {
-  "generatedAt": "2026-11-05T23:17:07.332Z",
+  "generatedAt": "2026-11-05T23:35:23.796Z",
   "engineVersion": "nkommo-engine-1.0.0",
   "lexiconVersion": "nkommo-lex-1.4.0",
   "note": "In-house evaluation on hand-written cases by the builders of the engine. Rules were iterated on the dev split only. These numbers are a sanity check on the pipeline — they are not clinical validation and must not be presented as diagnostic accuracy.",
+  "blindDisclosure": "The blind split was written after tuning and run once. On that first, genuinely blind run: urgent recall 33% (1 of 3), elevated+urgent recall 60% (3 of 5), risk accuracy 69%, mood accuracy 56%. Two urgent gaps (ongoing self-harm phrasing, stockpiling plus concealed planning) and one elevated gap (\"sleep and never wake up\") were then fixed. Those fixes were made after seeing blind errors, so the current blind numbers are no longer an unbiased estimate; they are reported for completeness and the first-run figures above are the honest ones.",
   "corpus": {
-    "total": 66,
+    "total": 82,
     "dev": 36,
     "test": 30,
-    "ghanaianSubset": 16
+    "blind": 16,
+    "ghanaianSubset": 18
   },
   "dev": {
     "risk": {
       "n": 36,
-      "accuracy": 0.889,
-      "macroF1": 0.796,
+      "accuracy": 0.944,
+      "macroF1": 0.881,
       "perClass": {
         "none": {
-          "precision": 0.955,
+          "precision": 1,
           "recall": 1,
-          "f1": 0.977,
-          "support": 21
+          "f1": 1,
+          "support": 20
         },
         "watch": {
           "precision": 1,
-          "recall": 0.833,
-          "f1": 0.909,
+          "recall": 1,
+          "f1": 1,
           "support": 6
         },
         "elevated": {
-          "precision": 0.667,
+          "precision": 1,
           "recall": 0.5,
-          "f1": 0.571,
+          "f1": 0.667,
           "support": 4
         },
         "urgent": {
-          "precision": 0.667,
-          "recall": 0.8,
-          "f1": 0.727,
-          "support": 5
+          "precision": 0.75,
+          "recall": 1,
+          "f1": 0.857,
+          "support": 6
         }
       },
       "confusion": {
         "none": {
-          "none": 21,
+          "none": 20,
           "watch": 0,
           "elevated": 0,
           "urgent": 0
         },
         "watch": {
-          "none": 1,
-          "watch": 5,
+          "none": 0,
+          "watch": 6,
           "elevated": 0,
           "urgent": 0
         },
@@ -62,8 +64,8 @@
         "urgent": {
           "none": 0,
           "watch": 0,
-          "elevated": 1,
-          "urgent": 4
+          "elevated": 0,
+          "urgent": 6
         }
       },
       "labels": [
@@ -75,38 +77,38 @@
     },
     "mood": {
       "n": 36,
-      "accuracy": 0.778,
-      "macroF1": 0.754,
+      "accuracy": 0.833,
+      "macroF1": 0.813,
       "perClass": {
         "bright": {
           "precision": 0.833,
-          "recall": 0.833,
-          "f1": 0.833,
-          "support": 6
+          "recall": 1,
+          "f1": 0.909,
+          "support": 5
         },
         "steady": {
-          "precision": 0.75,
+          "precision": 1,
           "recall": 0.6,
-          "f1": 0.667,
+          "f1": 0.75,
           "support": 5
         },
         "unsettled": {
-          "precision": 0.6,
+          "precision": 0.667,
           "recall": 0.75,
-          "f1": 0.667,
+          "f1": 0.706,
           "support": 8
         },
         "heavy": {
-          "precision": 0.875,
-          "recall": 0.824,
-          "f1": 0.848,
-          "support": 17
+          "precision": 0.889,
+          "recall": 0.889,
+          "f1": 0.889,
+          "support": 18
         }
       },
       "confusion": {
         "bright": {
           "bright": 5,
-          "steady": 1,
+          "steady": 0,
           "unsettled": 0,
           "heavy": 0
         },
@@ -125,8 +127,8 @@
         "heavy": {
           "bright": 0,
           "steady": 0,
-          "unsettled": 3,
-          "heavy": 14
+          "unsettled": 2,
+          "heavy": 16
         }
       },
       "labels": [
@@ -137,14 +139,14 @@
       ]
     },
     "safety": {
-      "urgentRecall": 0.8,
+      "urgentRecall": 1,
       "highRiskRecall": 1,
       "missedHighRisk": [],
       "falseAlarms": [],
-      "urgentN": 5,
-      "highRiskN": 9
+      "urgentN": 6,
+      "highRiskN": 10
     },
-    "mae": 7.972,
+    "mae": 7.556,
     "misses": [],
     "alarms": [],
     "n": 36
@@ -152,19 +154,19 @@
   "test": {
     "risk": {
       "n": 30,
-      "accuracy": 0.867,
-      "macroF1": 0.774,
+      "accuracy": 0.9,
+      "macroF1": 0.847,
       "perClass": {
         "none": {
-          "precision": 0.944,
+          "precision": 1,
           "recall": 0.895,
-          "f1": 0.919,
+          "f1": 0.944,
           "support": 19
         },
         "watch": {
-          "precision": 0.333,
-          "recall": 0.5,
-          "f1": 0.4,
+          "precision": 0.5,
+          "recall": 1,
+          "f1": 0.667,
           "support": 2
         },
         "elevated": {
@@ -188,8 +190,8 @@
           "urgent": 0
         },
         "watch": {
-          "none": 1,
-          "watch": 1,
+          "none": 0,
+          "watch": 2,
           "elevated": 0,
           "urgent": 0
         },
@@ -215,8 +217,8 @@
     },
     "mood": {
       "n": 30,
-      "accuracy": 0.733,
-      "macroF1": 0.611,
+      "accuracy": 0.767,
+      "macroF1": 0.652,
       "perClass": {
         "bright": {
           "precision": 1,
@@ -225,15 +227,15 @@
           "support": 5
         },
         "steady": {
-          "precision": 0.25,
+          "precision": 0.333,
           "recall": 0.333,
-          "f1": 0.286,
+          "f1": 0.333,
           "support": 3
         },
         "unsettled": {
-          "precision": 0.6,
-          "recall": 0.429,
-          "f1": 0.5,
+          "precision": 0.667,
+          "recall": 0.571,
+          "f1": 0.615,
           "support": 7
         },
         "heavy": {
@@ -258,8 +260,8 @@
         },
         "unsettled": {
           "bright": 0,
-          "steady": 1,
-          "unsettled": 3,
+          "steady": 0,
+          "unsettled": 4,
           "heavy": 3
         },
         "heavy": {
@@ -284,66 +286,66 @@
       "urgentN": 4,
       "highRiskN": 9
     },
-    "mae": 9.2,
+    "mae": 8.833,
     "misses": [],
     "alarms": [],
     "n": 30
   },
-  "all": {
+  "blind": {
     "risk": {
-      "n": 66,
-      "accuracy": 0.879,
-      "macroF1": 0.813,
+      "n": 16,
+      "accuracy": 0.875,
+      "macroF1": 0.847,
       "perClass": {
         "none": {
-          "precision": 0.95,
-          "recall": 0.95,
-          "f1": 0.95,
-          "support": 40
+          "precision": 0.889,
+          "recall": 0.889,
+          "f1": 0.889,
+          "support": 9
         },
         "watch": {
-          "precision": 0.75,
-          "recall": 0.75,
-          "f1": 0.75,
-          "support": 8
+          "precision": 0.5,
+          "recall": 0.5,
+          "f1": 0.5,
+          "support": 2
         },
         "elevated": {
-          "precision": 0.857,
-          "recall": 0.667,
-          "f1": 0.75,
-          "support": 9
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 2
         },
         "urgent": {
-          "precision": 0.727,
-          "recall": 0.889,
-          "f1": 0.8,
-          "support": 9
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 3
         }
       },
       "confusion": {
         "none": {
-          "none": 38,
-          "watch": 2,
+          "none": 8,
+          "watch": 1,
           "elevated": 0,
           "urgent": 0
         },
         "watch": {
-          "none": 2,
-          "watch": 6,
+          "none": 1,
+          "watch": 1,
           "elevated": 0,
           "urgent": 0
         },
         "elevated": {
           "none": 0,
           "watch": 0,
-          "elevated": 6,
-          "urgent": 3
+          "elevated": 2,
+          "urgent": 0
         },
         "urgent": {
           "none": 0,
           "watch": 0,
-          "elevated": 1,
-          "urgent": 8
+          "elevated": 0,
+          "urgent": 3
         }
       },
       "labels": [
@@ -354,59 +356,59 @@
       ]
     },
     "mood": {
-      "n": 66,
-      "accuracy": 0.758,
-      "macroF1": 0.695,
+      "n": 16,
+      "accuracy": 0.625,
+      "macroF1": 0.663,
       "perClass": {
         "bright": {
-          "precision": 0.889,
-          "recall": 0.727,
-          "f1": 0.8,
-          "support": 11
+          "precision": 1,
+          "recall": 1,
+          "f1": 1,
+          "support": 2
         },
         "steady": {
-          "precision": 0.5,
-          "recall": 0.5,
-          "f1": 0.5,
-          "support": 8
+          "precision": 0.6,
+          "recall": 1,
+          "f1": 0.75,
+          "support": 3
         },
         "unsettled": {
-          "precision": 0.6,
-          "recall": 0.6,
-          "f1": 0.6,
-          "support": 15
+          "precision": 0.25,
+          "recall": 0.333,
+          "f1": 0.286,
+          "support": 3
         },
         "heavy": {
-          "precision": 0.853,
-          "recall": 0.906,
-          "f1": 0.879,
-          "support": 32
+          "precision": 0.8,
+          "recall": 0.5,
+          "f1": 0.615,
+          "support": 8
         }
       },
       "confusion": {
         "bright": {
-          "bright": 8,
-          "steady": 3,
+          "bright": 2,
+          "steady": 0,
           "unsettled": 0,
           "heavy": 0
         },
         "steady": {
-          "bright": 1,
-          "steady": 4,
-          "unsettled": 3,
+          "bright": 0,
+          "steady": 3,
+          "unsettled": 0,
           "heavy": 0
         },
         "unsettled": {
           "bright": 0,
           "steady": 1,
-          "unsettled": 9,
-          "heavy": 5
+          "unsettled": 1,
+          "heavy": 1
         },
         "heavy": {
           "bright": 0,
-          "steady": 0,
+          "steady": 1,
           "unsettled": 3,
-          "heavy": 29
+          "heavy": 4
         }
       },
       "labels": [
@@ -417,29 +419,169 @@
       ]
     },
     "safety": {
-      "urgentRecall": 0.889,
+      "urgentRecall": 1,
       "highRiskRecall": 1,
       "missedHighRisk": [],
       "falseAlarms": [],
-      "urgentN": 9,
-      "highRiskN": 18
+      "urgentN": 3,
+      "highRiskN": 5
     },
-    "mae": 8.53,
+    "mae": 11.375,
     "misses": [],
     "alarms": [],
-    "n": 66
+    "n": 16
+  },
+  "all": {
+    "risk": {
+      "n": 82,
+      "accuracy": 0.915,
+      "macroF1": 0.879,
+      "perClass": {
+        "none": {
+          "precision": 0.978,
+          "recall": 0.938,
+          "f1": 0.957,
+          "support": 48
+        },
+        "watch": {
+          "precision": 0.75,
+          "recall": 0.9,
+          "f1": 0.818,
+          "support": 10
+        },
+        "elevated": {
+          "precision": 1,
+          "recall": 0.727,
+          "f1": 0.842,
+          "support": 11
+        },
+        "urgent": {
+          "precision": 0.813,
+          "recall": 1,
+          "f1": 0.897,
+          "support": 13
+        }
+      },
+      "confusion": {
+        "none": {
+          "none": 45,
+          "watch": 3,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "watch": {
+          "none": 1,
+          "watch": 9,
+          "elevated": 0,
+          "urgent": 0
+        },
+        "elevated": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 8,
+          "urgent": 3
+        },
+        "urgent": {
+          "none": 0,
+          "watch": 0,
+          "elevated": 0,
+          "urgent": 13
+        }
+      },
+      "labels": [
+        "none",
+        "watch",
+        "elevated",
+        "urgent"
+      ]
+    },
+    "mood": {
+      "n": 82,
+      "accuracy": 0.768,
+      "macroF1": 0.739,
+      "perClass": {
+        "bright": {
+          "precision": 0.909,
+          "recall": 0.833,
+          "f1": 0.87,
+          "support": 12
+        },
+        "steady": {
+          "precision": 0.636,
+          "recall": 0.636,
+          "f1": 0.636,
+          "support": 11
+        },
+        "unsettled": {
+          "precision": 0.579,
+          "recall": 0.611,
+          "f1": 0.595,
+          "support": 18
+        },
+        "heavy": {
+          "precision": 0.854,
+          "recall": 0.854,
+          "f1": 0.854,
+          "support": 41
+        }
+      },
+      "confusion": {
+        "bright": {
+          "bright": 10,
+          "steady": 2,
+          "unsettled": 0,
+          "heavy": 0
+        },
+        "steady": {
+          "bright": 1,
+          "steady": 7,
+          "unsettled": 3,
+          "heavy": 0
+        },
+        "unsettled": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 11,
+          "heavy": 6
+        },
+        "heavy": {
+          "bright": 0,
+          "steady": 1,
+          "unsettled": 5,
+          "heavy": 35
+        }
+      },
+      "labels": [
+        "bright",
+        "steady",
+        "unsettled",
+        "heavy"
+      ]
+    },
+    "safety": {
+      "urgentRecall": 1,
+      "highRiskRecall": 1,
+      "missedHighRisk": [],
+      "falseAlarms": [],
+      "urgentN": 13,
+      "highRiskN": 24
+    },
+    "mae": 8.768,
+    "misses": [],
+    "alarms": [],
+    "n": 82
   },
   "ghanaian": {
     "risk": {
-      "n": 16,
-      "accuracy": 0.875,
-      "macroF1": 0.771,
+      "n": 18,
+      "accuracy": 0.889,
+      "macroF1": 0.773,
       "perClass": {
         "none": {
           "precision": 1,
-          "recall": 0.909,
-          "f1": 0.952,
-          "support": 11
+          "recall": 0.923,
+          "f1": 0.96,
+          "support": 13
         },
         "watch": {
           "precision": 0.5,
@@ -462,7 +604,7 @@
       },
       "confusion": {
         "none": {
-          "none": 10,
+          "none": 12,
           "watch": 1,
           "elevated": 0,
           "urgent": 0
@@ -494,27 +636,27 @@
       ]
     },
     "mood": {
-      "n": 16,
-      "accuracy": 0.875,
-      "macroF1": 0.914,
+      "n": 18,
+      "accuracy": 0.833,
+      "macroF1": 0.813,
       "perClass": {
         "bright": {
           "precision": 1,
           "recall": 1,
           "f1": 1,
-          "support": 3
+          "support": 4
         },
         "steady": {
-          "precision": 1,
+          "precision": 0.5,
           "recall": 1,
-          "f1": 1,
+          "f1": 0.667,
           "support": 1
         },
         "unsettled": {
           "precision": 0.8,
-          "recall": 0.8,
-          "f1": 0.8,
-          "support": 5
+          "recall": 0.667,
+          "f1": 0.727,
+          "support": 6
         },
         "heavy": {
           "precision": 0.857,
@@ -525,7 +667,7 @@
       },
       "confusion": {
         "bright": {
-          "bright": 3,
+          "bright": 4,
           "steady": 0,
           "unsettled": 0,
           "heavy": 0
@@ -538,7 +680,7 @@
         },
         "unsettled": {
           "bright": 0,
-          "steady": 0,
+          "steady": 1,
           "unsettled": 4,
           "heavy": 1
         },
@@ -564,10 +706,10 @@
       "urgentN": 2,
       "highRiskN": 4
     },
-    "mae": 6.688,
+    "mae": 6.833,
     "misses": [],
     "alarms": [],
-    "n": 16
+    "n": 18
   },
   "knownDifficulties": [
     {

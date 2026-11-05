@@ -155,6 +155,19 @@ function scanRisk(text: string): RiskFinding {
     score = Math.max(score, pattern?.severity ?? 55);
   }
 
+  // Rehearsal + ideation: "thinking about how I would do it" is planning even
+  // when the writer never uses the word plan. Escalate, never de-escalate.
+  if (level === 'elevated' && selfMatches.length > 0 && hasPlanning) {
+    level = 'urgent';
+    score = Math.max(score, 90);
+    kept.push({
+      phrase: text.match(PLANNING_CUES[0])?.[0]?.trim() ?? 'planning language',
+      tier: 'urgent',
+      pattern: 'planning language alongside risk language',
+      subject: 'self',
+    });
+  }
+
   if (level === 'none' && otherMatches.length) {
     level = 'watch';
     score = Math.max(score, 45);
@@ -324,6 +337,9 @@ export function analyse(raw: string, when: Date = new Date()): Analysis {
   }
   sum += prepared.emojiValence;
 
+  // Valence is lexicon-driven, so risk phrasing the lexicon does not carry
+  // ("I have been cutting myself") can leave compound near zero. A safety
+  // reading must never look cheerful, so risk puts a floor under it.
   const compound = clamp(sum / Math.sqrt(sum * sum + 15), -1, 1);
 
   /* ---- Marker groups ---- */
@@ -403,6 +419,11 @@ export function analyse(raw: string, when: Date = new Date()): Analysis {
   if (risk.level === 'urgent') moodScore = Math.min(moodScore, 12);
   else if (risk.level === 'elevated') moodScore = Math.min(moodScore, 34);
   else if (risk.level === 'watch') moodScore = Math.min(moodScore, 48);
+  // Withdrawal is behavioural: "I stayed in my room and did not reply to
+  // anyone" carries almost no sentiment words, so the lexicon alone calls it
+  // steady. Two or more isolation phrases with no positive counterweight is
+  // an unsettled day by any clinical reading.
+  else if (groupHits.isolation.count >= 2 && compound <= 0.15) moodScore = Math.min(moodScore, 46);
 
   /* ---- Emotions ---- */
   const emotions = normaliseEmotions(emotionTotals, compound, distress);
@@ -439,11 +460,20 @@ export function analyse(raw: string, when: Date = new Date()): Analysis {
     .sort((a, b) => Math.abs(b.weight) - Math.abs(a.weight))
     .slice(0, 10);
 
+  const compoundFloored =
+    risk.level === 'urgent'
+      ? Math.min(compound, -0.75)
+      : risk.level === 'elevated'
+        ? Math.min(compound, -0.5)
+        : risk.level === 'watch'
+          ? Math.min(compound, -0.2)
+          : compound;
+
   return {
     version: ENGINE_VERSION,
     text: raw,
     wordCount: prepared.wordCount,
-    compound: Number(compound.toFixed(3)),
+    compound: Number(compoundFloored.toFixed(3)),
     moodScore,
     moodBand: moodBandFor(moodScore),
     distress,

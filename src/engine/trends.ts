@@ -34,6 +34,17 @@ export interface Pattern {
 
 const RISK_WEIGHT = { none: 0, watch: 1, elevated: 2, urgent: 3 } as const;
 
+/** Representative scores for a band, used when the writer overrides the reading. */
+const BAND_SCORE: Record<MoodBand, number> = { bright: 85, steady: 63, unsettled: 45, heavy: 20 };
+
+/**
+ * The writer's correction wins over the model. Everything downstream — charts,
+ * weekly averages, low-mood counts — reads this, not the raw model output.
+ */
+export function effectiveMood(entry: JournalEntry): number {
+  return entry.feltMood ? BAND_SCORE[entry.feltMood] : entry.analysis.moodScore;
+}
+
 function entriesBetween(entries: JournalEntry[], from: Date, to: Date): JournalEntry[] {
   return entries.filter((e) => {
     const t = new Date(e.createdAt).getTime();
@@ -54,7 +65,7 @@ export function buildSeries(
     const key = dayKey(date);
     const dayEntries = entries.filter((e) => dayKey(e.createdAt) === key);
     const dayCheckin = checkins.find((c) => dayKey(c.createdAt) === key);
-    const moods = dayEntries.map((e) => e.analysis.moodScore);
+    const moods = dayEntries.map((e) => effectiveMood(e));
     const distress = dayEntries.map((e) => e.analysis.distress);
     const risk = dayEntries.reduce<'none' | 'watch' | 'elevated' | 'urgent'>((acc, e) => {
       return RISK_WEIGHT[e.analysis.risk.level] > RISK_WEIGHT[acc] ? e.analysis.risk.level : acc;
@@ -83,8 +94,8 @@ export function weeklyAverages(entries: JournalEntry[], now = new Date()) {
   const lastWeekStart = addDays(startOfDay(now), -13);
   const thisWeek = entriesBetween(entries, thisWeekStart, addDays(startOfDay(now), 1));
   const lastWeek = entriesBetween(entries, lastWeekStart, thisWeekStart);
-  const thisAvg = average(thisWeek.map((e) => e.analysis.moodScore));
-  const lastAvg = average(lastWeek.map((e) => e.analysis.moodScore));
+  const thisAvg = average(thisWeek.map((e) => effectiveMood(e)));
+  const lastAvg = average(lastWeek.map((e) => effectiveMood(e)));
   const thisDistress = average(thisWeek.map((e) => e.analysis.distress));
   const lastDistress = average(lastWeek.map((e) => e.analysis.distress));
   return {
@@ -140,8 +151,8 @@ export function detectPatterns(
   const week = recent(entries, 7, now);
   const prevWeek = entriesBetween(entries, addDays(startOfDay(now), -13), addDays(startOfDay(now), -6));
   const tenDays = recent(entries, 10, now);
-  const weekAvg = average(week.map((e) => e.analysis.moodScore));
-  const prevAvg = average(prevWeek.map((e) => e.analysis.moodScore));
+  const weekAvg = average(week.map((e) => effectiveMood(e)));
+  const prevAvg = average(prevWeek.map((e) => effectiveMood(e)));
 
   const latestCheckins = [...checkins].sort(
     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
@@ -179,7 +190,7 @@ export function detectPatterns(
   }
 
   /* --- Sustained low mood ---------------------------------------- */
-  const lowDays = week.filter((e) => e.analysis.moodScore < 40);
+  const lowDays = week.filter((e) => effectiveMood(e) < 40);
   if (lowDays.length >= 3 && week.length >= 3) {
     patterns.push({
       id: 'sustained-low',

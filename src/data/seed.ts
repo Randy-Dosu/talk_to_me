@@ -63,11 +63,12 @@ export function buildDemoStore(now = new Date()): Pick<
 
   const phqAnswers = [2, 2, 3, 2, 1, 2, 2, 1, 0];
   const gadAnswers = [2, 2, 1, 3, 1, 2, 2];
+  // Prefix ids so `clearDemo` can remove them precisely.
   const checkins = [
     createCheckIn('PHQ9', phqAnswers, addDays(now, -15)),
     createCheckIn('GAD7', gadAnswers, addDays(now, -14)),
     createCheckIn('PHQ9', [1, 2, 2, 2, 1, 1, 1, 0, 0], addDays(now, -2)),
-  ];
+  ].map((checkin, index) => ({ ...checkin, id: `demo-checkin-${index}` }));
 
   return { entries, checkins, alerts: [] };
 }

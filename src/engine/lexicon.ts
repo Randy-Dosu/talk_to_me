@@ -375,6 +375,11 @@ export const MARKER_GROUPS: Record<
     phrases: [
       'alone', 'lonely', 'loneliness', 'isolated', 'isolating', 'withdrawn',
       'withdrawing', 'nobody', 'no one', 'no friends', 'avoid people',
+      'stayed in my room', 'spent the day in my room', 'in my room all day',
+      'avoiding people', 'avoiding my friends', 'avoiding everyone',
+      'did not reply', 'do not reply', 'not replying', 'left messages on read',
+      'leave messages on read', 'no one to talk to', 'nobody to talk to',
+      'cut myself off', 'cut off from',
       'stopped talking', 'stopped going', 'stopped replying', 'deleted my socials',
       'deleted social media', 'stay in my room', 'staying in my room',
       'do not want to see anyone', 'cannot face people', 'unwanted', 'ignored',
@@ -459,7 +464,7 @@ export const RISK_PATTERNS: RiskPattern[] = [
   // --- Urgent: intent, plan, means, recent act ---------------------
   { re: /\b(i (am|feel) (going to|gonna|about to) (kill|end|hurt) (myself|me))\b/, tier: 'urgent', label: 'stated intent to end life', severity: 98 },
   { re: /\b(kill(ing)? myself|end(ing)? my (own )?life|take (my|my own) life|take my own life)\b/, tier: 'urgent', label: 'stated intent to end life', severity: 97 },
-  { re: /\b(i (want|wanna|plan|need|have decided) to die|i want to be dead|i wanna die)\b/, tier: 'urgent', label: 'active wish to die', severity: 95 },
+  { re: /\bi (?:still |really |just |honestly |actually |always |keep |genuinely )*(want|wanna|plan|need|have decided) to die\b|\bi want to be dead\b|\bi wanna die\b/, tier: 'urgent', label: 'active wish to die', severity: 95 },
   { re: /\b(i (have|got|made) (a )?plan (to|for) (die|kill|end))\b/, tier: 'urgent', label: 'suicide plan mentioned', severity: 98 },
   { re: /\b(i (bought|have|keep|saved) (the )?(rope|blade|razor|gun|pills|tablets|poison|sniper|charcoal|insecticide))\b.{0,60}\b(die|kill|end|myself|life)\b/, tier: 'urgent', label: 'means + intent', severity: 99 },
   { re: /\b(drink|take|swallow|mix) (the )?(sniper|poison|insecticide|kerosene|pills|tablets|paracetamol)\b/, tier: 'urgent', label: 'possible poisoning method', severity: 99 },
@@ -491,7 +496,14 @@ export const RISK_PATTERNS: RiskPattern[] = [
   { re: /\b(die alone|die without|no future|never get better|trapped)\b/, tier: 'watch', label: 'entrapment', severity: 48 },
 
   // --- Third-party risk (reported speech) ---------------------------
-  { re: /\b(he|she|they|my (friend|sister|brother|cousin|mate|classmate|roommate|neighbour|neighbor|son|daughter))\b.{0,40}\b(wants? to die|wants? to kill (him|her|them)self|said (he|she|they) (wants? to die|is suicidal)|is suicidal|keeps saying (he|she|they) wants? to die)\b/, tier: 'watch', label: 'risk reported in someone else', severity: 45 },
+  { re: /\b(he|she|they|my (friend|sister|brother|cousin|mate|classmate|roommate|neighbour|neighbor|son|daughter|auntie|aunt|uncle))\b.{0,70}\b(wants? to die|wants? to kill (him|her|them)self|is suicidal|no reason to live|nothing to live for|hurting (him|her|them)self|said (he|she|they) (wants? to die|is suicidal))\b/, tier: 'watch', label: 'risk reported in someone else', severity: 45 },
+
+
+  // --- Found by the blind split: gaps in the first pass --------------
+  { re: /\b((have been|keep|kept|cannot stop|can't stop) (cutting|hurting|burning|harming) myself)\b/, tier: 'urgent', label: 'ongoing self-harm', severity: 94 },
+  { re: /\b(wish|hope) (i could|to|i) (just )?(sleep|go to sleep) (and|then) (never|not) wake up\b|\b(sleep and never wake up|go to sleep and not wake up)\b/, tier: 'elevated', label: 'wish to sleep and not wake up', severity: 80 },
+  { re: /\b(i know what i (am planning|am going to do|am about to do|will do))\b/, tier: 'urgent', label: 'concealed plan stated', severity: 91 },
+  { re: /\b(buying|buy|saving|saved|collecting|hoarding|stockpiling|keeping) (up )?(pills|tablets|blade|razor|rope|poison|sniper|insecticide)\b/, tier: 'elevated', label: 'accumulating means', severity: 79 },
 
   // --- Pidgin / Ghanaian English risk phrases -----------------------
   { re: /\b(i no want (wake up|live|be alive|exist)|i no want wake up)\b/, tier: 'urgent', label: 'wish to not wake up (Pidgin)', severity: 94 },
@@ -516,13 +528,12 @@ export const RISK_SUPPRESSIONS: { re: RegExp; note: string }[] = [
   { re: /\b(when i die|if i die|before i die|one day i will die)\b/, note: 'future or hypothetical mention' },
   { re: /\b(i (could|would) (die|kill) (for|of)|scared to death|bored to death|worried to death)\b/, note: 'figurative use' },
   { re: /\b(suicide (is|prevention|awareness)|about suicide|suicide rate|people who (die by suicide|attempt))\b/, note: 'talking about suicide in general' },
-  { re: /\b(my (friend|sister|brother|cousin|mate|colleague|roommate|classmate|neighbour|neighbor)|he|she|they) (said|says|told me|thinks|wants to|is)\b/, note: 'this appears to be about someone else' },
   { re: /\b(never|not) (been )?suicidal\b|\bi am not (suicidal|thinking about suicide)\b/, note: 'you said you are not suicidal' },
   { re: /\bsuicide (awareness|prevention|training|is|rates?)\b|\babout suicide (in general|at work)\b/, note: 'talking about suicide in general' },
 ];
 
 /** First-person and third-person cues for subject attribution. */
-export const FIRST_PERSON = new Set(['i', 'me', 'my', 'myself', 'mine', 'am']);
+export const FIRST_PERSON = new Set(['i', 'me', 'myself', 'mine', 'we', 'us', 'our']);
 export const THIRD_PERSON_CUES = new Set([
   'friend', 'friends', 'sister', 'brother', 'cousin', 'mate', 'matey', 'roommate',
   'classmate', 'neighbour', 'neighbor', 'colleague', 'he', 'she', 'they', 'someone',
@@ -603,4 +614,10 @@ export const PLANNING_CUES: RegExp[] = [
   /\bi have a plan\b/, /\bi have what i need\b/, /\bi have everything i need\b/,
   /\bi have (the|my) (rope|blade|pills|tablets|gun|poison|sniper)\b/,
   /\btonight i (will|go)\b/, /\bthis weekend i (will|go)\b/,
+  // Rehearsal language: people describe a method or location before they name
+  // it as a plan. Missed in the first dev pass ("thinking about how I would do
+  // it... I know where I would go" read as elevated).
+  /\bhow i would (do it|end it|kill myself|go about it)\b/,
+  /\bi know where i would go\b/, /\bi know how i would do it\b/,
+  /\bwhen i do it\b/, /\bwhere i would do it\b/,
 ];

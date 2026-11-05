@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import clsx from 'clsx';
 import { ChevronDown, Info, Languages, Sparkles, TriangleAlert } from 'lucide-react';
 import type { Analysis } from '../engine/types';
@@ -116,8 +117,10 @@ export default function AnalysisPanel({
         <div className="mt-4 flex items-start gap-2 rounded-2xl border border-gold/30 bg-gold/8 p-3">
           <TriangleAlert size={15} className="mt-0.5 shrink-0 text-[#8a6414]" />
           <p className="text-[0.78rem] leading-relaxed text-[#6f5310]">
-            This reads as being about someone else. We have kept your own risk level clear, but there is guidance on{' '}
-            <span className="font-medium">how to help a friend</span> on the safety page.
+            This reads as being about someone else. We have kept your own risk level clear. Ask them directly, stay with
+            them if you can, and call <a className="font-medium underline underline-offset-2" href="tel:112">112</a> or{' '}
+            <a className="font-medium underline underline-offset-2" href="tel:0800678678">0800 678 678</a>. Guidance:{' '}
+            <Link to="/safety#someone" className="font-medium underline underline-offset-2">helping a friend</Link>.
           </p>
         </div>
       )}

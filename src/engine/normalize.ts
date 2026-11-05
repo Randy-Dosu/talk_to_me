@@ -176,7 +176,6 @@ export function prepare(raw: string): PreparedText {
 
   // Lowercase for lexicon work but remember shoutiness per token later.
   const originalTokens = text.split(/(\s+)/);
-  const emphasisFlags: boolean[] = [];
 
   text = text.toLowerCase();
 
