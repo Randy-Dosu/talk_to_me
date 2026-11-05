@@ -25,7 +25,7 @@ That sentence contains three separable claims, and the design changes depending 
    people who need it least.
 
 **Design consequence:** privacy is not a feature bolted on for compliance. It is the intervention. On-device analysis,
-no account, alias-first onboarding, and a plain-language shared-phone threat model.
+no account, a one-page alias-first signup, and a plain-language shared-phone threat model.
 
 ---
 
@@ -119,7 +119,7 @@ protocol (see `docs/ROADMAP.md` Stage 2 and 8).
 
 | # | Finding | Decision | Where it lives |
 | --- | --- | --- | --- |
-| 1 | Disclosure is dangerous | On-device analysis, no account, alias by default | `data/store.tsx`, onboarding |
+| 1 | Disclosure is dangerous | On-device analysis, no account, alias by default | `data/store.tsx`, `pages/Signup.tsx` |
 | 2 | Distress is often somatic/Pidgin | Local lexicon + marker groups + explanatory evidence | `engine/lexicon.ts` |
 | 3 | Item 9 is safety-critical | Independent gate, tested, crisis card on any ≥1 | `engine/checkins.ts` |
 | 4 | VADER is sarcasm-blind | Disclose limits; route sarcasm to transformer roadmap | `pages/ModelCard.tsx` |
@@ -199,7 +199,7 @@ as 90% in the world.
 
 ## 7. Product research that changed the UI
 
-- **Onboarding is three skippable questions**, because a mental health app that demands a profile reproduces the
+- **Signup is one page and skippable**, because a mental health app that demands a profile reproduces the
   disclosure cost it is trying to remove.
 - **The reading is always expandable into phrases.** Trust in a mental health model depends less on accuracy claims than
   on being arguable.

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { render, screen, waitFor, within } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
@@ -16,8 +16,12 @@ function renderAt(path: string) {
 }
 
 async function skipOnboarding(user: ReturnType<typeof userEvent.setup>) {
-  const skip = await screen.findByRole('button', { name: /skip setup/i });
-  await user.click(skip);
+  expect(await screen.findByText(/set up in one page/i)).toBeTruthy();
+  await user.click(screen.getByRole('button', { name: /skip for now/i }));
+}
+
+async function sendEntry(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: /send entry/i }));
 }
 
 async function writeEntry(user: ReturnType<typeof userEvent.setup>, text: string) {
@@ -48,18 +52,17 @@ describe('journalling flow', () => {
     const user = userEvent.setup();
     renderAt('/journal');
 
-    expect(await screen.findByText(/a place to say it before you say it out loud/i)).toBeTruthy();
     await skipOnboarding(user);
 
     await writeEntry(user, 'Today was heavy but I showed up.');
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
 
     // The entry is stored and rendered in the "Today" list.
     await waitFor(() => {
       const matches = screen.getAllByText(/today was heavy but i showed up\./i);
       expect(matches.length).toBeGreaterThan(0);
     });
-    expect(screen.getByText(/kept\. only you/i)).toBeTruthy();
+    expect(screen.getAllByText(/distress/i).length).toBeGreaterThan(0);
 
     const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
     expect(stored.entries).toHaveLength(1);
@@ -72,6 +75,7 @@ describe('journalling flow', () => {
     await skipOnboarding(user);
 
     await writeEntry(user, 'I do not want to be here anymore. I am tired of this life.');
+    await sendEntry(user);
 
     await waitFor(
       () => {
@@ -88,16 +92,17 @@ describe('journalling flow', () => {
     renderAt('/journal');
     await skipOnboarding(user);
     await writeEntry(user, 'A quiet day, mostly fine.');
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
 
-    const card = await screen.findByRole('article');
-    await user.click(within(card).getByRole('button', { name: /^heavy$/i }));
+    await user.click(screen.getByRole('button', { name: /not quite/i }));
+    await user.click(screen.getByRole('button', { name: /^heavy$/i }));
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
       expect(stored.entries[0].feltMood).toBe('heavy');
     });
 
-    await user.click(within(card).getByRole('button', { name: /use the reading/i }));
+    await user.click(screen.getByRole('button', { name: /not quite/i }));
+    await user.click(screen.getByRole('button', { name: /use the reading/i }));
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
       expect(stored.entries[0].feltMood).toBeUndefined();
@@ -107,7 +112,8 @@ describe('journalling flow', () => {
   it('loads and clears sample data without leaving demo artefacts behind', async () => {
     const user = userEvent.setup();
     renderAt('/journal');
-    await user.click(await screen.findByRole('button', { name: /look around with fictional sample data/i }));
+    await skipOnboarding(user);
+    await user.click(await screen.findByRole('button', { name: /fictional sample data/i }));
 
     expect(await screen.findByText(/sample data is loaded/i)).toBeTruthy();
     let stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
@@ -129,19 +135,18 @@ describe('journalling flow', () => {
     renderAt('/journal');
     await skipOnboarding(user);
     await writeEntry(user, "My friend told me he wants to kill himself and I don't know what to do.");
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
 
-    const card = await screen.findByRole('article');
-    expect(within(card).getAllByText(/about someone else/i).length).toBeGreaterThan(0);
-    expect(within(card).getAllByRole('link', { name: /0800 678 678/i }).length).toBeGreaterThan(0);
-    expect(within(card).getAllByRole('link', { name: /how to talk to a friend/i }).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/about someone else/i)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/0800 678 678/i).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('link', { name: /how to talk to a friend/i }).length).toBeGreaterThan(0);
   });
 
   it('disables saving an empty entry', async () => {
     const user = userEvent.setup();
     renderAt('/journal');
     await skipOnboarding(user);
-    const button = screen.getByRole('button', { name: /keep this entry/i });
+    const button = screen.getByRole('button', { name: /send entry/i });
     expect((button as HTMLButtonElement).disabled).toBe(true);
   });
 
@@ -150,13 +155,10 @@ describe('journalling flow', () => {
     renderAt('/journal');
     await skipOnboarding(user);
     await writeEntry(user, 'I am fine, just tired.');
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
 
-    const todayEntry = await screen.findByRole('article');
-    // A freshly saved entry opens expanded; older ones need a click.
-    const opener = within(todayEntry).queryByRole('button', { name: /read fully/i });
-    if (opener) await user.click(opener);
-    await user.click(within(todayEntry).getByRole('button', { name: /^heavy$/i }));
+    await user.click(screen.getByRole('button', { name: /not quite/i }));
+    await user.click(screen.getByRole('button', { name: /^heavy$/i }));
 
     const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
     expect(stored.entries[0].feltMood).toBe('heavy');
@@ -222,7 +224,7 @@ describe('safety and privacy', () => {
     const first = renderAt('/journal');
     await skipOnboarding(user);
     await writeEntry(user, 'Secret detail: I cried in the trotro today.');
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
     await waitFor(() => expect(screen.getAllByText(/cried in the trotro/i).length).toBeGreaterThan(0));
     first.unmount();
 
@@ -251,7 +253,7 @@ describe('safety and privacy', () => {
     const { unmount } = renderAt('/journal');
     await skipOnboarding(user);
     await writeEntry(user, 'Something private I do not want kept.');
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
     await waitFor(() => expect(window.localStorage.getItem('nkommo.store.v1')).toBeTruthy());
     unmount();
 
@@ -265,8 +267,9 @@ describe('safety and privacy', () => {
 
 describe('route smoke tests', () => {
   const routes = [
-    ['/', /say it here first/i],
-    ['/journal', /how is your heart today|place to say it before/i],
+    ['/', /set up in one page/i],
+    ['/journal', /set up in one page/i],
+    ['/welcome', /say it here first/i],
     ['/patterns', /pattern|the pattern needs/i],
     ['/check-in', /two minutes, nine questions/i],
     ['/safety', /help that answers, tonight/i],
@@ -303,10 +306,10 @@ describe('route smoke tests', () => {
 describe('navigation', () => {
   it('gets from the landing page to the journal and the model card', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    renderAt('/welcome');
 
     await user.click(screen.getAllByRole('link', { name: /start privately/i })[0]);
-    expect(await screen.findByText(/how are you today|place to say it before/i)).toBeTruthy();
+    expect((await screen.findAllByText(/set up in one page|what should i call you/i)).length).toBeGreaterThan(0);
 
     await user.click(screen.getAllByRole('link', { name: /model card & evaluation|model card/i })[0]);
     expect(await screen.findByText(/what the reading can do/i)).toBeTruthy();
@@ -314,7 +317,7 @@ describe('navigation', () => {
 
   it('shows the demo reading on the landing form', async () => {
     const user = userEvent.setup();
-    renderAt('/');
+    renderAt('/welcome');
     const box = screen.getByLabelText(/sample journal entry/i);
     await user.clear(box);
     await user.type(box, 'I feel hopeless and alone.');
@@ -374,7 +377,7 @@ describe('voice input', () => {
     const box = await screen.findByLabelText(/write your entry/i);
     expect((box as HTMLTextAreaElement).value).toMatch(/i spoke this into the app/i);
 
-    await user.click(screen.getByRole('button', { name: /keep this entry/i }));
+    await sendEntry(user);
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
       expect(stored.entries[0].source).toBe('voice');
@@ -393,5 +396,56 @@ describe('voice input', () => {
     expect(await screen.findByText(/voice input is not available in this browser/i)).toBeTruthy();
     await user.click(screen.getByRole('button', { name: /type/i }));
     expect(screen.queryByRole('dialog', { name: /speak your entry/i })).toBeNull();
+  });
+});
+
+describe('signup', () => {
+  it('requires a name and the acknowledgement before it will start', async () => {
+    const user = userEvent.setup();
+    renderAt('/signup');
+
+    const start = screen.getByRole('button', { name: /start writing/i });
+    expect((start as HTMLButtonElement).disabled).toBe(true);
+
+    await user.type(screen.getByLabelText(/what should i call you/i), 'Kofi');
+    expect((start as HTMLButtonElement).disabled).toBe(true);
+
+    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
+    expect((start as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('takes the name, language and trusted contact once, then opens the chat', async () => {
+    const user = userEvent.setup();
+    renderAt('/signup');
+
+    await user.type(screen.getByLabelText(/what should i call you/i), 'Kofi');
+    await user.click(screen.getByRole('button', { name: /english \+ twi/i }));
+    await user.type(screen.getByLabelText(/trusted contact name/i), 'Auntie Efua');
+    await user.type(screen.getByLabelText(/trusted contact phone/i), '+233240000000');
+    await user.click(screen.getByRole('checkbox', { name: /they have agreed/i }));
+    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
+    await user.click(screen.getByRole('button', { name: /start writing/i }));
+
+    expect(await screen.findByLabelText(/write your entry/i)).toBeTruthy();
+    expect(screen.getAllByText(/kofi/i).length).toBeGreaterThan(0);
+
+    const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
+    expect(stored.settings.onboarded).toBe(true);
+    expect(stored.settings.language).toBe('tw-en');
+    expect(stored.settings.trusted.name).toBe('Auntie Efua');
+    expect(stored.safetyPlan.people[0].name).toBe('Auntie Efua');
+  });
+
+  it('sends the first message and answers it in the chat', async () => {
+    const user = userEvent.setup();
+    renderAt('/journal');
+    await skipOnboarding(user);
+
+    await writeEntry(user, 'Today was heavy but I showed up.');
+    await sendEntry(user);
+
+    expect((await screen.findAllByText(/today was heavy but i showed up/i)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/distress/i).length).toBeGreaterThan(0);
+    expect(screen.getByRole('button', { name: /send entry/i })).toBeTruthy();
   });
 });

@@ -63,10 +63,10 @@ export default function Landing() {
             </p>
 
             <div className="mt-7 flex flex-wrap items-center gap-3">
-              <Link to="/journal" className="btn btn-primary px-5 py-3 text-[0.9rem]">
+              <Link to="/signup" className="btn btn-primary px-5 py-3 text-[0.9rem]">
                 Start privately <ArrowRight size={15} />
               </Link>
-              <Link to="/patterns" className="btn btn-ghost px-4 py-3 text-[0.9rem]">
+              <Link to="/welcome#how" className="btn btn-ghost px-4 py-3 text-[0.9rem]">
                 See the pattern view
               </Link>
             </div>
@@ -272,7 +272,7 @@ export default function Landing() {
               Two sentences is a beginning.
             </h2>
             <div className="mt-5 flex flex-wrap items-center gap-3">
-              <Link to="/journal" className="btn bg-paper px-5 py-3 text-[0.88rem] text-forest hover:bg-white">
+              <Link to="/signup" className="btn bg-paper px-5 py-3 text-[0.88rem] text-forest hover:bg-white">
                 <Sparkles size={14} /> Open my journal
               </Link>
               <Link to="/about" className="text-[0.84rem] text-paper/80 underline decoration-paper/30 underline-offset-4 hover:text-paper">

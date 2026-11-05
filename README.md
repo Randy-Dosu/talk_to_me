@@ -17,7 +17,8 @@ serving this demo.
 | Area | Status |
 | --- | --- |
 | Landing page with live, editable sentiment demo | ✅ working |
-| Private journal with local-only storage, onboarding, delete/edit | ✅ working |
+| Chat-style journal: one screen, local-only storage, delete/edit | ✅ working |
+| One-page signup: alias, language, trusted contact, acknowledgement | ✅ working |
 | Voice journalling: full-screen capture sheet → speech-to-text → editable entry | ✅ working (browser-dependent) |
 | Analysis engine: valence, negation, intensifiers, 11 emotions, distress index | ✅ working + unit tested |
 | Safety pass: 3 risk tiers, sentence-level suppression, third-person attribution | ✅ working + unit tested |
@@ -47,13 +48,14 @@ Other scripts:
 
 ```bash
 npm run build      # typecheck + production build
-npm test           # 59 tests: engine, clinical scoring, trends, UI flows, route smoke
+npm test           # 63 tests: engine, clinical scoring, trends, chat flows, route smoke
 npm run eval       # regenerates src/engine/eval/report.json (the model card numbers)
 npm run typecheck
 ```
 
-First visit: the journal asks three short onboarding questions (all skippable), or you can load fictional sample data
-to see the patterns and charts populated.
+First visit: one signup page collects everything the app needs — alias, language, an optional trusted contact, and the
+"not a diagnosis" acknowledgement. The chat then asks for nothing else; every other page is reference material. You can
+skip signup, or load fictional sample data from the empty chat to see the patterns populated.
 
 ---
 
@@ -63,7 +65,7 @@ to see the patterns and charts populated.
 - **Tailwind CSS v4** — design tokens in `src/index.css` (warm paper, forest, clay, gold; Fraunces + Inter).
 - **Recharts** — mood trend chart.
 - **Custom engine in `src/engine`** — no runtime model download, no network, deterministic and explainable.
-- **Vitest + Testing Library + jsdom** — 59 tests including full journal and check-in flows.
+- **Vitest + Testing Library + jsdom** — 63 tests including the signup, chat, voice, check-in and safety flows.
 - **Python reference path in `ml/`** — FastAPI service and a RoBERTa/GoEmotions fine-tuning script for the production
   model, kept separate so it never pretends to be what the demo runs.
 

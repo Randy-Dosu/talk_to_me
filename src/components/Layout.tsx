@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { Link, NavLink, Outlet, useLocation } from 'react-router-dom';
 import clsx from 'clsx';
-import { Activity, BookOpenText, HeartHandshake, LifeBuoy, Menu, Phone, ShieldCheck, X } from 'lucide-react';
+import { Activity, HeartHandshake, LifeBuoy, Menu, MessageCircle, Phone, ShieldCheck, X } from 'lucide-react';
 import { Wordmark } from './Logo';
 import { useStore } from '../data/store';
 import { RESOURCES } from '../data/resources';
 
 const NAV = [
-  { to: '/journal', label: 'Journal', icon: BookOpenText },
+  { to: '/journal', label: 'Talk', icon: MessageCircle },
   { to: '/patterns', label: 'Patterns', icon: Activity },
   { to: '/check-in', label: 'Check-in', icon: HeartHandshake },
   { to: '/safety', label: 'Safety', icon: LifeBuoy },
@@ -21,6 +21,7 @@ export default function Layout() {
   const { state, clearDemo } = useStore();
   const location = useLocation();
   const isLanding = location.pathname === '/';
+  const isChat = ['/journal', '/chat', '/signup'].includes(location.pathname);
   const helpline = RESOURCES[0];
 
   return (
@@ -63,7 +64,7 @@ export default function Layout() {
               Need help now
             </a>
             <Link to="/journal" className="btn btn-primary hidden text-[0.82rem] lg:inline-flex">
-              Write
+              Talk
             </Link>
             <button
               type="button"
@@ -150,6 +151,7 @@ export default function Layout() {
         </div>
       </nav>
 
+      {!isChat && (
       <footer className="mb-16 mt-16 border-t border-line/80 bg-paper-deep/50 lg:mb-0 lg:mt-20">
         <div className="container-page grid gap-10 py-12 md:grid-cols-[1.4fr_1fr_1fr]">
           <div>
@@ -193,6 +195,7 @@ export default function Layout() {
             <p className="eyebrow mb-3">The work</p>
             <ul className="space-y-2 text-[0.82rem] text-ink-soft">
               <li><Link to="/about" className="hover:text-forest">Why this exists</Link></li>
+              <li><Link to="/welcome" className="hover:text-forest">What this is</Link></li>
               <li><Link to="/model" className="hover:text-forest">Model card &amp; evaluation</Link></li>
               <li><Link to="/research" className="hover:text-forest">Research notes</Link></li>
               <li><Link to="/privacy" className="hover:text-forest">Privacy &amp; data</Link></li>
@@ -207,6 +210,7 @@ export default function Layout() {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 }
