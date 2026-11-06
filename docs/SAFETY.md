@@ -158,10 +158,13 @@ The morning and evening prompts are **one short question**, not coaching and not
 a menu of suggestions. Nothing is offered for the person to tap and send; the
 box is always theirs to fill.
 
-- **One question, three variants per window.** Chosen by the date so the app does
-  not read as a script. Every variant is a question of 40 characters or fewer and
-  contains no instruction, no reframe and no suggested answer. Tests assert the
-  question mark, the length and the absence of advice phrasing.
+- **One question, composed from context.** The text is not a single constant.
+  It is built from the signal in the last three entries (heavy, anxious, angry,
+  flat, bright, steady), the time of day, the number of entries written and a
+  date seed, so it changes as the writing changes. Sixteen distinct questions
+  were observed across 500 prompts in the benchmark.
+- **Never repeats back to back.** The last question shown is stored locally and
+  excluded from the next pick.
 - **No suggestion chips.** The earlier build offered starter questions as
   tappable chips; they were removed. The card offers only **Write** (focus the
   composer) and dismiss.
@@ -174,3 +177,29 @@ box is always theirs to fill.
 - **No push service.** There is no service worker, no subscription and no
   account. A notification fires only while the tab is open; when permission is
   blocked or unsupported the in-app card is the fallback, and Settings says so.
+
+## 13. Microphone and cloud egress
+
+Two optional paths move data off the device. Both are explicit, and both say so
+before the first byte leaves.
+
+| Path | What leaves | When |
+| --- | --- | --- |
+| Speech recognition | Audio, to the browser vendor's speech service (Chrome/Edge), or on-device when the browser supports `processLocally` | Only after the person taps the mic and grants permission |
+| Server transcription | The recorded audio, to the endpoint in `VITE_TRANSCRIBE_URL` (the `transcribe` Cloud Function in this repo) | Only in browsers without SpeechRecognition, and only after tapping record |
+| Cloud backup | Entries, analyses, check-ins, safety plan, display name, language, reminder times | Only after signing in **and** switching on backup |
+| Hugging Face replies | The entry text, when enabled and not high-risk | At send time, disclosed under the message |
+
+Rules that hold across all four:
+
+- **Permission first.** The sheet calls `getUserMedia` before starting
+  recognition, so a blocked mic is reported as blocked instead of failing
+  silently. Errors name the fix (allow the mic, open in its own tab, type).
+- **Nothing invented.** If transcription fails or returns empty text, the app
+  says so and keeps the recording out of the journal.
+- **Minimum upload.** `settingsForCloud` strips location, trusted contact, AI
+  settings and token before any write; tests assert the stripped shape.
+- **Owner-only database.** Firestore rules allow a signed-in user to touch only
+  `users/{uid}` and its subcollections. Everything else is denied.
+- **Deletable.** "Delete cloud copy" removes entries, check-ins and the root
+  document. Signing out switches auto-backup off.

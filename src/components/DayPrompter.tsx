@@ -1,16 +1,17 @@
 import { Bell, BellRing, Sunrise, Sunset, X } from 'lucide-react';
 import type { PromptKind } from '../data/prompts';
-import { openerFor, daySeed } from '../data/prompts';
 
 /** One question, a way to start writing, and a way to close it. No suggestions. */
 export default function DayPrompter({
   kind,
+  question,
   onStart,
   onDismiss,
   onEnableNotifications,
   permission,
 }: {
   kind: PromptKind;
+  question: string;
   onStart: () => void;
   onDismiss: () => void;
   onEnableNotifications?: () => void;
@@ -36,7 +37,7 @@ export default function DayPrompter({
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-[0.66rem] uppercase tracking-[0.12em] text-ink-muted">{morning ? 'Morning' : 'Evening'}</p>
-          <p className="mt-1 text-[0.95rem] leading-snug text-ink">{openerFor(kind, daySeed())}</p>
+          <p className="mt-1 text-[0.95rem] leading-snug text-ink">{question}</p>
           <button
             type="button"
             onClick={onStart}

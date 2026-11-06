@@ -68,8 +68,23 @@ export const SPEECH_ERROR_COPY: Record<string, string> = {
 
 const MAX_RESTARTS = 12;
 
+type MicState = 'idle' | 'requesting' | 'ready' | 'denied' | 'unavailable';
+
+function describeMicError(error: unknown): string {
+  const name = error instanceof Error ? error.name : '';
+  if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return 'The microphone is blocked here. Allow the mic, open the page in its own tab, or type instead — typing always works.';
+  }
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    return 'No microphone was found on this device. Typing works instead.';
+  }
+  return 'Could not reach the microphone. Another app may be holding it. Typing works instead.';
+}
+
 export function useSpeech() {
   const supported = Boolean(getConstructor());
+  const [micState, setMicState] = useState<MicState>('idle');
+  const [level, setLevel] = useState(0);
   const [listening, setListening] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [finalText, setFinalText] = useState('');
@@ -77,6 +92,93 @@ export function useSpeech() {
   const recognitionRef = useRef<SpeechRecognitionLike | null>(null);
   const wantRef = useRef(false);
   const restartsRef = useRef(0);
+  const streamRef = useRef<MediaStream | null>(null);
+  const meterRef = useRef<{ context: AudioContext; analyser: AnalyserNode } | null>(null);
+  const frameRef = useRef<number | null>(null);
+
+  const stopMeter = useCallback(() => {
+    if (frameRef.current !== null) {
+      window.cancelAnimationFrame(frameRef.current);
+      frameRef.current = null;
+    }
+    const meter = meterRef.current;
+    meterRef.current = null;
+    if (meter) {
+      try {
+        meter.context.close();
+      } catch {
+        // already closed
+      }
+    }
+    setLevel(0);
+  }, []);
+
+  const releaseMic = useCallback(() => {
+    stopMeter();
+    const stream = streamRef.current;
+    streamRef.current = null;
+    stream?.getTracks().forEach((track) => track.stop());
+  }, [stopMeter]);
+
+  const startMeter = useCallback((stream: MediaStream) => {
+    const AudioCtor =
+      window.AudioContext ??
+      (window as unknown as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext;
+    if (!AudioCtor) return;
+    try {
+      const context = new AudioCtor();
+      const analyser = context.createAnalyser();
+      analyser.fftSize = 512;
+      context.createMediaStreamSource(stream).connect(analyser);
+      meterRef.current = { context, analyser };
+      const data = new Uint8Array(analyser.fftSize);
+      const loop = () => {
+        analyser.getByteTimeDomainData(data);
+        let sum = 0;
+        for (const value of data) {
+          const centred = (value - 128) / 128;
+          sum += centred * centred;
+        }
+        const rms = Math.sqrt(sum / data.length);
+        setLevel(Math.min(1, rms * 3));
+        frameRef.current = window.requestAnimationFrame(loop);
+      };
+      frameRef.current = window.requestAnimationFrame(loop);
+    } catch {
+      // A meter is a nicety; recognition works without it.
+    }
+  }, []);
+
+  /**
+   * Ask for the microphone explicitly before handing over to recognition. This
+   * is what makes the browser permission prompt appear, and it lets the sheet
+   * say "blocked" instead of failing silently.
+   */
+  const ensureMic = useCallback(async (): Promise<boolean> => {
+    if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
+      setMicState('unavailable');
+      // No getUserMedia (jsdom, old browsers): let recognition try anyway.
+      return true;
+    }
+    if (streamRef.current) {
+      setMicState('ready');
+      return true;
+    }
+    setMicState('requesting');
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      setMicState('ready');
+      startMeter(stream);
+      return true;
+    } catch (error) {
+      releaseMic();
+      const name = error instanceof Error ? error.name : '';
+      setMicState(name === 'NotAllowedError' || name === 'SecurityError' ? 'denied' : 'unavailable');
+      setError(describeMicError(error));
+      return false;
+    }
+  }, [releaseMic, startMeter]);
 
   const hardStop = useCallback(() => {
     wantRef.current = false;
@@ -88,7 +190,8 @@ export function useSpeech() {
     recognitionRef.current = null;
     setListening(false);
     setInterim('');
-  }, []);
+    releaseMic();
+  }, [releaseMic]);
 
   useEffect(() => () => hardStop(), [hardStop]);
 
@@ -143,6 +246,7 @@ export function useSpeech() {
         setError(SPEECH_ERROR_COPY[event.error] ?? 'Speech recognition stopped unexpectedly. Typing works every time.');
         setListening(false);
         setInterim('');
+        releaseMic();
       };
       recognition.onend = () => {
         setListening(false);
@@ -168,11 +272,16 @@ export function useSpeech() {
     }
   }, []);
 
-  const start = useCallback(() => {
+  const start = useCallback(async () => {
     setError(null);
     wantRef.current = true;
+    const ok = await ensureMic();
+    if (!ok) {
+      wantRef.current = false;
+      return;
+    }
     begin();
-  }, [begin]);
+  }, [begin, ensureMic]);
 
   const stop = useCallback(() => {
     wantRef.current = false;
@@ -183,7 +292,8 @@ export function useSpeech() {
     }
     setListening(false);
     setInterim('');
-  }, []);
+    releaseMic();
+  }, [releaseMic]);
 
   const clear = useCallback(() => {
     setFinalText('');
@@ -194,6 +304,8 @@ export function useSpeech() {
   return {
     supported,
     listening,
+    micState,
+    level,
     error,
     interim,
     finalText,

@@ -4,8 +4,14 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 import { StoreProvider } from '../data/store';
-import { OPENER_VARIANTS, daySeed, openerFor } from '../data/prompts';
+import { SIGNAL_QUESTIONS, questionFor, signalFromEntries } from '../data/prompts';
+import { analyse } from '../engine/analyze';
+import type { JournalEntry } from '../engine/types';
 import { dismiss, formatClock, isDismissed, minutesUntil, nextSlot, promptWindow } from '../lib/dayPrompter';
+
+function entry(text: string, id = 'e1'): JournalEntry {
+  return { id, createdAt: new Date().toISOString(), text, source: 'typed', analysis: analyse(text) };
+}
 
 function renderAt(path: string) {
   return render(
@@ -18,27 +24,59 @@ function renderAt(path: string) {
 }
 
 describe('the opening question', () => {
-  it('is one short question, with no suggested answer', () => {
-    for (const kind of ['morning', 'evening'] as const) {
-      for (const text of OPENER_VARIANTS[kind]) {
-        expect(text.trim().endsWith('?')).toBe(true);
-        expect(text.length).toBeLessThanOrEqual(40);
-        expect(text).not.toContain('—');
-        expect(text).not.toMatch(/you should|try to|remember to|no need|slow is fine|deserve/i);
+  it('is always a short question, with no advice and no suggested answer', () => {
+    for (const pool of Object.values(SIGNAL_QUESTIONS)) {
+      for (const questions of Object.values(pool)) {
+        for (const text of questions) {
+          expect(text.trim().endsWith('?')).toBe(true);
+          expect(text.length).toBeLessThanOrEqual(80);
+          expect(text).not.toMatch(/you should|try to|remember to|no need|slow is fine|deserve/i);
+        }
       }
     }
   });
 
-  it('is stable within a day and distinct between morning and evening', () => {
-    const morning = openerFor('morning', daySeed(new Date('2026-11-05T08:00:00')));
-    expect(openerFor('morning', daySeed(new Date('2026-11-05T21:00:00')))).toBe(morning);
-    expect(OPENER_VARIANTS.morning).toContain(morning);
-    expect(OPENER_VARIANTS.evening).not.toContain(morning);
+  it('changes with what the last entries read like', () => {
+    const empty = questionFor({ kind: 'evening', entries: [], now: new Date('2026-11-05T20:00:00') });
+    const heavy = questionFor({
+      kind: 'evening',
+      entries: [entry('I feel worthless and hopeless. I cannot sleep and nothing matters.', 'h1')],
+      now: new Date('2026-11-05T20:00:00'),
+    });
+    const bright = questionFor({
+      kind: 'evening',
+      entries: [entry('Today was good. I felt calm, grateful and proud.', 'b1')],
+      now: new Date('2026-11-05T20:00:00'),
+    });
+
+    const endsIn = (pool: string[], text: string) => pool.some((question) => text.endsWith(question));
+    expect(endsIn(SIGNAL_QUESTIONS.steady.evening, empty)).toBe(true);
+    expect(endsIn(SIGNAL_QUESTIONS.heavy.evening, heavy)).toBe(true);
+    expect(endsIn(SIGNAL_QUESTIONS.bright.evening, bright)).toBe(true);
+    expect(new Set([empty, heavy, bright]).size).toBe(3);
   });
 
-  it('moves on with the date', () => {
-    expect(openerFor('evening', 1)).not.toBe(openerFor('evening', 2));
-    expect(openerFor('evening', 3)).toBe(openerFor('evening', 0));
+  it('reads a signal from the last three entries', () => {
+    const heavy = entry('I feel hopeless and worthless and cannot get out of bed.', 'h');
+    const bright = 'Today was good. I felt calm, grateful and proud of what I finished.';
+    expect(signalFromEntries([])).toBe('steady');
+    expect(signalFromEntries([heavy, heavy])).toBe('heavy');
+    expect(signalFromEntries([entry(bright, 'a'), entry(bright, 'b'), entry(bright, 'c')])).toBe('bright');
+  });
+
+  it('is stable within a moment and does not repeat itself back to back', () => {
+    const ctx = { kind: 'morning' as const, entries: [], now: new Date('2026-11-05T08:00:00') };
+    const first = questionFor(ctx);
+    expect(questionFor(ctx)).toBe(first);
+    expect(questionFor(ctx, first)).not.toBe(first);
+  });
+
+  it('asks different things on different days and hours', () => {
+    const monday = questionFor({ kind: 'morning', entries: [], now: new Date('2026-11-02T08:00:00') });
+    const friday = questionFor({ kind: 'morning', entries: [], now: new Date('2026-11-06T08:00:00') });
+    const evening = questionFor({ kind: 'evening', entries: [], now: new Date('2026-11-02T20:00:00') });
+    expect(monday).not.toBe(evening);
+    expect(typeof friday).toBe('string');
   });
 });
 
@@ -120,7 +158,7 @@ describe('prompter in the app', () => {
 
     const card = await screen.findByLabelText(/evening check-in/i);
     expect(within(card).getByText(/^evening$/i)).toBeTruthy();
-    expect(within(card).getByText(openerFor('evening', daySeed(new Date('2026-11-05T20:10:00'))))).toBeTruthy();
+    expect(within(card).getByText(questionFor({ kind: 'evening', entries: [], now: new Date('2026-11-05T20:10:00') }))).toBeTruthy();
     // No suggestion buttons anywhere: the only buttons are Write and dismiss.
     expect(screen.queryAllByRole('button', { name: /\?$/ })).toHaveLength(0);
     expect(within(card).getAllByRole('button').map((b) => b.textContent)).toEqual(['Write', '']);
@@ -154,7 +192,7 @@ describe('prompter in the app', () => {
 
     const card = await screen.findByLabelText(/morning plan/i);
     expect(within(card).getByText(/^morning$/i)).toBeTruthy();
-    expect(within(card).getByText(openerFor('morning', daySeed(new Date('2026-11-05T08:15:00'))))).toBeTruthy();
+    expect(within(card).getByText(questionFor({ kind: 'morning', entries: [], now: new Date('2026-11-05T08:15:00') }))).toBeTruthy();
   });
 
   it('asks the same question in the chat outside a prompt window, with no chips', async () => {
@@ -163,7 +201,7 @@ describe('prompter in the app', () => {
     await enterChat();
 
     expect(screen.queryByLabelText(/evening check-in|morning plan/i)).toBeNull();
-    expect(screen.getByText(openerFor('morning', daySeed(new Date('2026-11-05T14:00:00'))))).toBeTruthy();
+    expect(screen.getByText(questionFor({ kind: 'morning', entries: [], now: new Date('2026-11-05T14:00:00') }))).toBeTruthy();
     expect(screen.queryAllByRole('button', { name: /\?$/ })).toHaveLength(0);
   });
 

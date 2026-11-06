@@ -1,0 +1,10 @@
+{
+  "name": "nkommo-functions",
+  "private": true,
+  "main": "index.js",
+  "engines": { "node": "20" },
+  "dependencies": {
+    "firebase-functions": "^6.1.0",
+    "@google-cloud/speech": "^6.7.0"
+  }
+}

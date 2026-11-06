@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, BrainCircuit, Check, KeyRound, Lock, MapPin, ShieldAlert, Sunrise, Sunset, X } from 'lucide-react';
+import { Bell, BrainCircuit, Check, Cloud, CloudDownload, CloudUpload, KeyRound, Lock, LogOut, MapPin, ShieldAlert, Sunrise, Sunset, Trash2, X } from 'lucide-react';
 import NearestHelp from '../components/NearestHelp';
 import { SectionHeading } from '../components/ui';
 import { useStore } from '../data/store';
@@ -8,12 +8,16 @@ import { DEFAULT_HF_MODEL, getHfToken, setHfToken, testHfConnection } from '../l
 import { formatClock } from '../lib/dayPrompter';
 import { useNotificationPermission } from '../lib/useReminders';
 import { useLiveRegion } from '../lib/useLiveRegion';
+import { useCloud } from '../lib/useCloud';
 
 export default function Settings() {
   const { state, updateSettings } = useStore();
   const notifications = useNotificationPermission();
   // The region label and clinic ranking come from the device, not a form.
   const live = useLiveRegion(true);
+  const cloud = useCloud();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [model, setModel] = useState(state.settings.ai.model || DEFAULT_HF_MODEL);
   const [token, setToken] = useState(getHfToken());
   const [consent, setConsent] = useState(state.settings.ai.enabled);
@@ -146,6 +150,156 @@ export default function Settings() {
           </span>
         </div>
         <NearestHelp />
+      </section>
+
+      {/* ---------- cloud backup ---------- */}
+      <section className="mt-8">
+        <div className="mb-2 flex items-center gap-2">
+          <Cloud size={15} className="text-forest" />
+          <h2 className="font-display text-[1.2rem] text-ink">Cloud backup</h2>
+        </div>
+        <p className="mb-3 max-w-xl text-[0.84rem] leading-relaxed text-ink-muted">
+          Optional Firestore backup. Entries leave this device only after you sign in and switch it on.
+        </p>
+
+        <div className="card p-5">
+          {cloud.phase === 'not-configured' && (
+            <div>
+              <p className="text-[0.85rem] font-medium text-ink">Not configured in this build</p>
+              <p className="mt-1 max-w-lg text-[0.76rem] leading-relaxed text-ink-muted">
+                Add the <code className="rounded bg-paper-deep px-1">VITE_FIREBASE_*</code> variables and redeploy, or run the
+                emulators. The local journal works exactly the same without it. Setup notes are in{' '}
+                <code className="rounded bg-paper-deep px-1">docs/BACKEND.md</code>.
+              </p>
+            </div>
+          )}
+
+          {cloud.phase !== 'not-configured' && !cloud.ready && (
+            <p className="text-[0.8rem] text-ink-muted">Connecting to Firebase…</p>
+          )}
+
+          {cloud.phase === 'signed-out' && cloud.ready && (
+            <form
+              onSubmit={(event) => {
+                event.preventDefault();
+                void cloud.signIn(email.trim(), password);
+              }}
+            >
+              <p className="text-[0.85rem] font-medium text-ink">Sign in to back up</p>
+              <p className="mt-1 text-[0.74rem] leading-relaxed text-ink-muted">
+                Email and password only. Create an account if you do not have one — no email is sent.
+              </p>
+              <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(event) => setEmail(event.target.value)}
+                  placeholder="you@example.com"
+                  autoComplete="email"
+                  aria-label="Cloud email"
+                  className="field text-[0.84rem]"
+                  required
+                />
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(event) => setPassword(event.target.value)}
+                  placeholder="Password"
+                  autoComplete="current-password"
+                  aria-label="Cloud password"
+                  minLength={6}
+                  className="field text-[0.84rem]"
+                  required
+                />
+              </div>
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button type="submit" disabled={cloud.busy} className="btn btn-primary px-3 py-2 text-[0.8rem]">
+                  <Cloud size={13} /> {cloud.busy ? 'Working…' : 'Sign in'}
+                </button>
+                <button
+                  type="button"
+                  disabled={cloud.busy}
+                  onClick={() => void cloud.signUp(email.trim(), password)}
+                  className="btn btn-ghost px-3 py-2 text-[0.8rem]"
+                >
+                  Create account
+                </button>
+              </div>
+            </form>
+          )}
+
+          {cloud.phase === 'signed-in' && (
+            <div>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="text-[0.85rem] font-medium text-ink">
+                  Signed in as <span className="text-forest">{cloud.user?.email ?? cloud.user?.uid}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => void cloud.signOut()}
+                  className="inline-flex items-center gap-1 text-[0.74rem] text-ink-muted hover:text-ink"
+                >
+                  <LogOut size={12} /> Sign out
+                </button>
+              </div>
+
+              <label className="mt-3 flex cursor-pointer items-start justify-between gap-4">
+                <span>
+                  <span className="block text-[0.84rem] font-medium text-ink">Back up automatically</span>
+                  <span className="mt-0.5 block text-[0.74rem] leading-snug text-ink-muted">
+                    Uploads journal text, analyses, check-ins and your safety plan. Location, trusted contact and the model
+                    token are never uploaded.
+                  </span>
+                </span>
+                <input
+                  type="checkbox"
+                  role="switch"
+                  aria-checked={cloud.enabled}
+                  aria-label="Back up automatically"
+                  checked={cloud.enabled}
+                  onChange={(event) => cloud.setEnabled(event.target.checked)}
+                  className="mt-1 h-5 w-5 accent-forest"
+                />
+              </label>
+
+              <div className="mt-3 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => void cloud.backup()}
+                  disabled={cloud.busy}
+                  className="btn btn-ghost px-3 py-2 text-[0.8rem]"
+                >
+                  <CloudUpload size={13} /> Back up now
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void cloud.restore()}
+                  disabled={cloud.busy}
+                  className="btn btn-ghost px-3 py-2 text-[0.8rem]"
+                >
+                  <CloudDownload size={13} /> Restore
+                </button>
+                <button
+                  type="button"
+                  onClick={() => void cloud.erase()}
+                  disabled={cloud.busy}
+                  className="inline-flex items-center gap-1 rounded-full px-3 py-2 text-[0.78rem] text-ink-muted hover:text-rose"
+                >
+                  <Trash2 size={12} /> Delete cloud copy
+                </button>
+              </div>
+
+              <p className="mt-2 text-[0.7rem] text-ink-muted">
+                {cloud.lastBackupAt
+                  ? `Last backup: ${new Date(cloud.lastBackupAt).toLocaleString()}`
+                  : 'No backup yet this device.'}
+              </p>
+            </div>
+          )}
+
+          {cloud.message && <p className="mt-2 text-[0.76rem] text-forest">{cloud.message}</p>}
+          {cloud.error && <p className="mt-2 text-[0.76rem] text-rose">{cloud.error}</p>}
+        </div>
       </section>
 
       {/* ---------- conversation model ---------- */}

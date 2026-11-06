@@ -72,7 +72,8 @@ export default function Privacy() {
         <div>
           <SectionHeading eyebrow="What leaves this device" title="A short and boring list." />
           <ul className="mt-3 space-y-2 text-[0.86rem] leading-relaxed text-ink-soft">
-            <li>· Nothing, unless you press the microphone button — then your browser vendor&rsquo;s speech service receives the audio.</li>
+            <li>· Nothing, unless you press the microphone button — then your browser&rsquo;s speech service receives the audio. In browsers that cannot transcribe, the recording goes only to the transcription endpoint this build is configured with.</li>
+            <li>· If you sign in to cloud backup and switch it on, journal text, analyses, check-ins and your safety plan are written to your Firestore account. Off by default; location, trusted contact and the model token are never uploaded.</li>
             <li>· If you copy an alert draft, it goes wherever you paste it. That is your decision, not ours.</li>
             <li>· Your location, if you use the nearest-clinic feature, stays in this browser. The region label is derived from the coordinate locally, and distance is computed against a bundled list — no map tiles, no geocoding request.</li>
             <li>· If you turn on Hugging Face replies in Settings, entry text leaves the device to that service. High-risk entries never do. The token lives in session storage.</li>

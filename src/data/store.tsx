@@ -32,6 +32,7 @@ import type {
   SafetyPlan,
   StoreShape,
 } from '../engine/types';
+import { mergeById } from '../lib/cloudModel';
 
 const STORAGE_KEY = 'nkommo.store.v1';
 const STORE_VERSION = 1;
@@ -47,6 +48,8 @@ const DEFAULT_SETTINGS: Settings = {
   onboarded: false,
   clinicianMode: false,
   location: null,
+  cloudEnabled: false,
+  lastBackupAt: null,
   ai: { enabled: false, model: 'HuggingFaceH4/zephyr-7b-beta' },
 };
 
@@ -96,6 +99,12 @@ export interface StoreApi {
   setFeltMood: (entryId: string, band: MoodBand | null) => void;
   addCheckIn: (scale: ScaleId, answers: number[]) => CheckIn;
   updateSettings: (patch: Partial<Settings>) => void;
+  importRemote: (payload: {
+    entries: JournalEntry[];
+    checkins: CheckIn[];
+    settings: Partial<Settings>;
+    safetyPlan?: SafetyPlan;
+  }) => void;
   updatePlan: (patch: Partial<SafetyPlan>) => void;
   addAlert: (trigger: string, preview: string) => void;
   dismissAlert: (alertId: string) => void;
@@ -187,6 +196,16 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     setState((prev) => ({ ...prev, alerts: [alert, ...prev.alerts] }));
   }, []);
 
+  const importRemote = useCallback<StoreApi['importRemote']>((payload) => {
+    setState((prev) => ({
+      ...prev,
+      entries: mergeById(prev.entries, payload.entries),
+      checkins: mergeById(prev.checkins, payload.checkins),
+      settings: { ...prev.settings, ...payload.settings },
+      safetyPlan: payload.safetyPlan ? { ...prev.safetyPlan, ...payload.safetyPlan } : prev.safetyPlan,
+    }));
+  }, []);
+
   const dismissAlert = useCallback((alertId: string) => {
     setState((prev) => ({
       ...prev,
@@ -225,13 +244,27 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       setFeltMood,
       addCheckIn,
       updateSettings,
+      importRemote,
       updatePlan,
       addAlert,
       dismissAlert,
       wipe,
       exportJson,
     }),
-    [state, addEntry, removeEntry, setFeltMood, addCheckIn, updateSettings, updatePlan, addAlert, dismissAlert, wipe, exportJson],
+    [
+      state,
+      addEntry,
+      removeEntry,
+      setFeltMood,
+      addCheckIn,
+      updateSettings,
+      importRemote,
+      updatePlan,
+      addAlert,
+      dismissAlert,
+      wipe,
+      exportJson,
+    ],
   );
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>;

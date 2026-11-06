@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-11-05T23:35:23.796Z",
+  "generatedAt": "2026-11-06T00:30:00.270Z",
   "engineVersion": "nkommo-engine-1.0.0",
   "lexiconVersion": "nkommo-lex-1.4.0",
   "note": "In-house evaluation on hand-written cases by the builders of the engine. Rules were iterated on the dev split only. These numbers are a sanity check on the pipeline — they are not clinical validation and must not be presented as diagnostic accuracy.",

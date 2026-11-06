@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { ArrowRight, Keyboard, Mic, MicOff, RotateCcw, Square, X } from 'lucide-react';
+import { ArrowRight, ExternalLink, Keyboard, Mic, MicOff, RotateCcw, Square, X } from 'lucide-react';
 import { useSpeech } from '../lib/useSpeech';
+import { useRecorder } from '../lib/useRecorder';
+import { transcribeUrl } from '../lib/transcribe';
 
 /**
  * Full-screen voice capture. The browser does the speech-to-text; this app has
@@ -16,6 +18,9 @@ export default function VoiceSheet({
   onInsert: (text: string) => void;
 }) {
   const speech = useSpeech();
+  const recorder = useRecorder();
+  const canTranscribe = Boolean(transcribeUrl());
+  const mode = speech.supported ? 'recognition' : recorder.supported && canTranscribe ? 'recorder' : 'none';
   const [seconds, setSeconds] = useState(0);
   const started = useRef(false);
   const transcriptRef = useRef<HTMLTextAreaElement>(null);
@@ -31,16 +36,16 @@ export default function VoiceSheet({
     if (!started.current) {
       started.current = true;
       speech.clear();
-      speech.start();
+      if (mode === 'recognition') void speech.start();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
-    if (!open || !speech.listening) return;
+    if (!open || (!speech.listening && !recorder.recording)) return;
     const timer = window.setInterval(() => setSeconds((value) => value + 1), 1000);
     return () => window.clearInterval(timer);
-  }, [open, speech.listening]);
+  }, [open, speech.listening, recorder.recording]);
 
   useEffect(() => {
     if (!open) return;
@@ -54,6 +59,10 @@ export default function VoiceSheet({
   if (!open) return null;
 
   const hasWords = speech.finalText.trim().length > 0;
+  const active = speech.listening || recorder.recording;
+  const embedded = typeof window !== 'undefined' && window.self !== window.top;
+  const errorText = speech.error ?? recorder.error;
+  const heading = speech.listening ? 'Listening' : recorder.recording ? 'Recording' : hasWords ? 'Paused' : 'Ready';
   const time = `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`;
 
   const insert = () => {
@@ -77,7 +86,7 @@ export default function VoiceSheet({
             </span>
             <div>
               <p className="text-sm font-medium text-ink">Speak your entry</p>
-              <p className="text-[0.7rem] text-ink-muted">{speech.listening ? 'Listening' : hasWords ? 'Paused' : 'Ready'}</p>
+              <p className="text-[0.7rem] text-ink-muted">{heading}</p>
             </div>
           </div>
           <button type="button" onClick={onClose} className="rounded-full p-2 text-ink-muted hover:bg-ink/5" aria-label="Close voice input">
@@ -88,38 +97,67 @@ export default function VoiceSheet({
         <div className="flex flex-col items-center px-5 pt-6">
           <button
             type="button"
-            onClick={() => (speech.listening ? speech.stop() : speech.start())}
-            disabled={!speech.supported}
-            aria-label={speech.listening ? 'Stop listening' : 'Start listening'}
+            onClick={() => {
+              if (mode === 'recorder') {
+                if (recorder.recording) {
+                  recorder.stop();
+                } else {
+                  void recorder.start((text) =>
+                    speech.setFinalText((prev) => `${prev}${prev.trim() ? ' ' : ''}${text}`.trim()),
+                  );
+                }
+                return;
+              }
+              if (speech.listening) speech.stop();
+              else void speech.start();
+            }}
+            disabled={mode === 'none' || recorder.transcribing}
+            aria-label={active ? 'Stop listening' : 'Start listening'}
             className={`relative flex h-24 w-24 items-center justify-center rounded-full text-white transition-transform active:scale-95 ${
-              speech.listening ? 'bg-clay' : 'bg-forest'
+              active ? 'bg-clay' : 'bg-forest'
             } disabled:bg-ink/20`}
           >
-            {speech.listening && (
+            {active && (
               <>
-                <span className="absolute inset-0 animate-ping rounded-full bg-clay/30" />
-                <span className="absolute -inset-3 rounded-full border border-clay/30" />
+                <span
+                  className="absolute -inset-2 rounded-full bg-clay/25 transition-transform duration-100"
+                  style={{ transform: `scale(${1 + speech.level * 0.35})`, opacity: 0.35 + speech.level * 0.5 }}
+                />
+                <span className="absolute inset-0 animate-ping rounded-full bg-clay/20" />
               </>
             )}
-            {speech.listening ? <Square size={26} fill="currentColor" /> : speech.supported ? <Mic size={30} /> : <MicOff size={28} />}
+            {active ? <Square size={26} fill="currentColor" /> : mode === 'none' ? <MicOff size={28} /> : <Mic size={30} />}
           </button>
           <p className="mt-3 font-display text-2xl tabular-nums text-ink">{time}</p>
           <p className="text-[0.72rem] text-ink-muted">
-            {speech.supported
-              ? speech.listening
-                ? 'Speak normally. Tap to pause.'
-                : 'Tap the mic to keep going.'
-              : 'Voice input is not available in this browser.'}
+            {mode === 'none'
+              ? 'Voice input is not available in this browser.'
+              : recorder.transcribing
+                ? 'Turning the recording into text…'
+                : active
+                  ? 'Speak normally. Tap to stop.'
+                  : speech.micState === 'denied'
+                    ? 'Microphone blocked — allow it in the address bar, or type.'
+                    : 'Tap the mic to start.'}
           </p>
         </div>
 
         <div className="min-h-0 flex-1 px-5 py-4">
-          {speech.error ? (
+          {errorText ? (
             <div className="rounded-2xl border border-gold/35 bg-gold/10 p-3.5">
-              <p className="text-[0.82rem] leading-relaxed text-[#6f5310]">{speech.error}</p>
-              {!speech.supported && (
+              <p className="text-[0.82rem] leading-relaxed text-[#6f5310]">{errorText}</p>
+              {embedded && (
+                <button
+                  type="button"
+                  onClick={() => window.open(window.location.href, '_blank', 'noopener,noreferrer')}
+                  className="mt-2 inline-flex items-center gap-1 text-[0.78rem] font-medium text-forest underline decoration-line underline-offset-2"
+                >
+                  <ExternalLink size={12} /> Open in its own tab
+                </button>
+              )}
+              {mode === 'none' && (
                 <p className="mt-2 text-[0.76rem] leading-relaxed text-[#6f5310]/80">
-                  Chrome and Edge on a laptop or Android usually support this. Typing always works.
+                  Chrome and Edge on a laptop or Android can transcribe without a server. Typing always works.
                 </p>
               )}
             </div>
@@ -158,7 +196,9 @@ export default function VoiceSheet({
             </button>
           </div>
           <p className="mt-2 text-center text-[0.66rem] leading-relaxed text-ink-muted">
-            Your browser turns speech into text. Nkommo has no server; only the words you keep are stored.
+            {mode === 'recorder'
+              ? 'Your browser cannot transcribe alone, so the recording goes to the transcription endpoint configured for this build.'
+              : 'Your browser turns speech into text. Only the words you keep are stored.'}
           </p>
         </div>
       </div>

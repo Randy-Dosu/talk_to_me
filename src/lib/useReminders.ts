@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Settings } from '../engine/types';
-import { daySeed, openerFor } from '../data/prompts';
+import { questionFor } from '../data/prompts';
 import { nextSlot } from './dayPrompter';
 
 type Permission = 'unsupported' | 'default' | 'granted' | 'denied';
@@ -42,7 +42,10 @@ export function useNotificationPermission() {
  * get a notification, and the UI says so. The body is a starter question —
  * never journal content.
  */
-export function useReminderScheduler(settings: Settings) {
+export function useReminderScheduler(
+  settings: Settings,
+  entries: Parameters<typeof questionFor>[0]['entries'],
+) {
   const [tick, setTick] = useState(0);
   const [permission, setPermission] = useState<Permission>(readPermission);
 
@@ -63,7 +66,7 @@ export function useReminderScheduler(settings: Settings) {
     const timer = window.setTimeout(() => {
       setTick((value) => value + 1);
       try {
-        const question = openerFor(slot.kind, daySeed(new Date()));
+        const question = questionFor({ kind: slot.kind, entries });
         new Notification(slot.kind === 'morning' ? 'Nkommo · plan the day' : 'Nkommo · close the day', {
           body: question,
           tag: `nkommo-${slot.kind}`,
@@ -74,5 +77,5 @@ export function useReminderScheduler(settings: Settings) {
     }, delay);
 
     return () => window.clearTimeout(timer);
-  }, [settings.remindersEnabled, settings.morningTime, settings.eveningTime, permission, tick]);
+  }, [settings.remindersEnabled, settings.morningTime, settings.eveningTime, permission, tick, entries]);
 }

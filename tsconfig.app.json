@@ -28,6 +28,7 @@
     "src"
   ],
   "exclude": [
-    "src/engine/eval/run.ts"
+    "src/engine/eval/run.ts",
+    "src/engine/eval/bench.ts"
   ]
 }

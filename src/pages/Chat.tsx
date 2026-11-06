@@ -21,7 +21,7 @@ import { MoodBadge } from '../components/ui';
 import { useStore, useSortedEntries } from '../data/store';
 import { getHfToken, hfReply, maySendToModel } from '../lib/hfChat';
 import { dayKey, formatDay, formatTime } from '../engine/id';
-import { daySeed, openerFor } from '../data/prompts';
+import { questionFor } from '../data/prompts';
 import { dismiss, isDismissed, periodLabel, periodOfDay, promptWindow } from '../lib/dayPrompter';
 import { useNotificationPermission } from '../lib/useReminders';
 import { bandChip } from '../lib/tone';
@@ -76,6 +76,28 @@ export default function Chat() {
   const slotPrompt = promptWindow(now);
   const promptKind = slotPrompt ?? (hour < 17 ? 'morning' : 'evening');
   const reminders = useNotificationPermission();
+  const lastQuestion = useRef<string | null>(
+    typeof window === 'undefined' ? null : window.localStorage.getItem('nkommo.lastQuestion'),
+  );
+  // Re-ask only when the window or the entries change — not on every render.
+  const questionSignature = `${promptKind}:${entries.length}:${entries[0]?.id ?? 'none'}:${hour}`;
+  const question = useMemo(
+    () =>
+      state.settings.onboarded
+        ? questionFor({ kind: promptKind, entries, now }, lastQuestion.current ?? undefined)
+        : '',
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [questionSignature, state.settings.onboarded],
+  );
+  useEffect(() => {
+    if (!question) return;
+    lastQuestion.current = question;
+    try {
+      window.localStorage.setItem('nkommo.lastQuestion', question);
+    } catch {
+      // private mode: the question is still asked, it just may repeat
+    }
+  }, [question]);
   const showPrompter = Boolean(slotPrompt) && state.settings.remindersEnabled && !promptDismissed && !isDismissed(promptKind, now);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
@@ -229,6 +251,7 @@ export default function Chat() {
               <div className="pt-4">
                 <DayPrompter
                   kind={slotPrompt}
+                  question={question}
                   permission={reminders.permission}
                   onEnableNotifications={() => {
                     void reminders.requestPermission();
@@ -249,7 +272,7 @@ export default function Chat() {
                     <Mark size={26} />
                     <div className="rounded-2xl rounded-tl-md bg-white/70 px-4 py-3">
                       {!showPrompter && (
-                        <p className="text-[0.95rem] leading-relaxed text-ink">{openerFor(promptKind, daySeed(now))}</p>
+                        <p className="text-[0.95rem] leading-relaxed text-ink">{question}</p>
                       )}
                     </div>
                   </div>

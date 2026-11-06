@@ -246,7 +246,7 @@ What production still needs:
 
 | Piece | State |
 | --- | --- |
-| `src/data/prompts.ts` — one short question per window, three variants each, date-seeded | ✅ tested |
+| `src/data/prompts.ts` — question composed from entry signal, hour, volume and date; no repeats back to back | ✅ tested + benchmarked |
 | `src/lib/dayPrompter.ts` — windows, once-per-day dismissal, next-slot maths, clock formatting | ✅ tested |
 | `src/lib/useReminders.ts` — opt-in Notification scheduler + permission hook | ✅ tested with jsdom |
 | `DayPrompter` card in the chat at the top of each window | ✅ |
@@ -257,7 +257,8 @@ Prompt design rules:
 
 - Questions only. No suggestions, no suggested answers, no advice, no diagnoses.
   The card offers only Write and dismiss; the composer is never filled in.
-- One question per window, picked by date.
+- One question per window, composed from the last three entries' signal, the
+  hour and the date. Never the same twice in a row.
 - Dismissal keyed by date + window; one prompt per window per day.
 - The notification body is a question; no journal content leaves the page.
 

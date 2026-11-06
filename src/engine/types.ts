@@ -191,6 +191,9 @@ export interface Settings {
   /** Stored locally only; used to rank nearby clinics. Never transmitted. */
   location: SavedLocation | null;
   ai: AiSettings;
+  /** Cloud backup is off unless the person signs in and opts in. */
+  cloudEnabled: boolean;
+  lastBackupAt: string | null;
 }
 
 export interface AlertEvent {

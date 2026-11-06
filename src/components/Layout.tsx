@@ -20,7 +20,7 @@ const TABS = NAV.slice(0, 4);
 export default function Layout() {
   const [open, setOpen] = useState(false);
   const { state } = useStore();
-  useReminderScheduler(state.settings);
+  useReminderScheduler(state.settings, state.entries);
   const location = useLocation();
   const isLanding = location.pathname === '/';
   const isChat = ['/journal', '/chat', '/signup'].includes(location.pathname);
