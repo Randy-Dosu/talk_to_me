@@ -180,6 +180,51 @@ describe('hugging face adapter', () => {
   });
 });
 
+describe('the optional model in the chat', () => {
+  it('shows the model reply and says where it came from', async () => {
+    seedStore({ settings: { onboarded: true, displayName: 'Kofi', ai: { enabled: true, model: 'test/model' } } });
+    window.sessionStorage.setItem('nkommo.hf.token', 'good-token');
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ choices: [{ message: { content: 'That sounds heavy. What was the hardest part?' } }] }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    renderAt('/journal');
+    await user.type(await screen.findByLabelText(/write your entry/i), 'Work was heavy today and I could not sleep.');
+    await user.click(screen.getByRole('button', { name: /send entry/i }));
+
+    expect(await screen.findByText(/that sounds heavy/i)).toBeTruthy();
+    expect(screen.getAllByText(/via test\/model/i).length).toBeGreaterThan(0);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toContain('huggingface.co');
+    expect((init.headers as Record<string, string>).Authorization).toBe('Bearer good-token');
+  });
+
+  it('never sends crisis text, even with the model on', async () => {
+    seedStore({ settings: { onboarded: true, displayName: 'Kofi', ai: { enabled: true, model: 'test/model' } } });
+    window.sessionStorage.setItem('nkommo.hf.token', 'good-token');
+    const fetchMock = vi.fn(async () => new Response('{}', { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const user = userEvent.setup();
+    renderAt('/journal');
+    await user.type(
+      await screen.findByLabelText(/write your entry/i),
+      'I do not want to be here anymore. I am tired of this life.',
+    );
+    await user.click(screen.getByRole('button', { name: /send entry/i }));
+
+    expect(await screen.findByText(/on-device reading/i)).toBeTruthy();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+});
+
 describe('nearby services in the app', () => {
   it('uses the browser location once and shows the closest hospital', async () => {
     mockGeolocation('success');

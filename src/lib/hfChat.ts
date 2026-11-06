@@ -114,6 +114,14 @@ export async function hfReply(options: {
     if (response.status === 429) {
       return { ok: false, text: '', kind: 'rate', error: 'The model is rate-limited right now.' };
     }
+    if (response.status === 404) {
+      return {
+        ok: false,
+        text: '',
+        kind: 'bad',
+        error: 'That model id is not served by Hugging Face. Try another id in Settings.',
+      };
+    }
     if (!response.ok) {
       return { ok: false, text: '', kind: 'bad', error: `The model service returned ${response.status}.` };
     }

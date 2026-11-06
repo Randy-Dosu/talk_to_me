@@ -12,7 +12,8 @@
     "eval": "tsx src/engine/eval/run.ts",
     "test": "vitest run",
     "test:watch": "vitest",
-    "bench": "tsx src/engine/eval/bench.ts"
+    "bench": "tsx src/engine/eval/bench.ts",
+    "hf:smoke": "tsx scripts/hf-smoke.ts"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "5.3.0",
