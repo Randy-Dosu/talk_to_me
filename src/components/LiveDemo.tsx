@@ -1,21 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import clsx from 'clsx';
 import { ArrowRight, Lock, Sparkles } from 'lucide-react';
 import { analyse } from '../engine/analyze';
-import { GHANAIAN_SAMPLE_ENTRIES, RISK_EXAMPLE } from '../engine/lexicon';
 import { bandChip, EMOTION_META } from '../lib/tone';
 import { MoodBadge, RiskBadge } from './ui';
 
-const SAMPLES = [
-  ...GHANAIAN_SAMPLE_ENTRIES.slice(0, 3).map((s) => ({ label: s.label, text: s.text })),
-  { label: 'What risk looks like', text: RISK_EXAMPLE },
-];
-
+/**
+ * A live reading, with nothing preloaded. The box starts empty: no invented
+ * entry, no sample persona. Whatever is typed here is the only text analysed.
+ */
 export default function LiveDemo() {
-  const [text, setText] = useState(SAMPLES[1].text);
-  const [live, setLive] = useState(text);
-  const [active, setActive] = useState(1);
+  const [text, setText] = useState('');
+  const [live, setLive] = useState('');
 
   useEffect(() => {
     const timer = window.setTimeout(() => setLive(text), 380);
@@ -44,39 +40,16 @@ export default function LiveDemo() {
 
       <div className="grid lg:grid-cols-[1.05fr_1fr]">
         <div className="border-b border-line/70 p-4 lg:border-b-0 lg:border-r">
-          <div className="mb-2 flex flex-wrap gap-1">
-            {SAMPLES.map((sample, index) => (
-              <button
-                key={sample.label}
-                type="button"
-                onClick={() => {
-                  setActive(index);
-                  setText(sample.text);
-                  setLive(sample.text);
-                }}
-                className={clsx(
-                  'rounded-full border px-2 py-1 text-[0.66rem] transition-colors',
-                  active === index
-                    ? 'border-forest/30 bg-forest/8 text-forest'
-                    : 'border-line text-ink-muted hover:border-sage/40',
-                )}
-              >
-                {sample.label}
-              </button>
-            ))}
-          </div>
           <textarea
             value={text}
-            onChange={(e) => {
-              setText(e.target.value);
-              setActive(-1);
-            }}
+            onChange={(e) => setText(e.target.value)}
             rows={7}
-            aria-label="Sample journal entry"
-            className="w-full resize-none rounded-xl border border-line/70 bg-white/70 p-3 text-[0.86rem] leading-relaxed text-ink outline-none focus:border-sage/60"
+            aria-label="Try an entry"
+            placeholder="Write a line about today, the way you would say it…"
+            className="w-full resize-none rounded-xl border border-line/70 bg-white/70 p-3 text-[0.86rem] leading-relaxed text-ink outline-none placeholder:text-ink-muted/60 focus:border-sage/60"
           />
           <p className="mt-1.5 text-[0.66rem] leading-snug text-ink-muted">
-            Edit it. The reading updates as you type — the same engine that runs inside the journal.
+            The reading updates as you type — the same engine that runs inside the journal.
           </p>
         </div>
 

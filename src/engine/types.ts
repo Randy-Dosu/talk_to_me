@@ -210,5 +210,4 @@ export interface StoreShape {
   settings: Settings;
   safetyPlan: SafetyPlan;
   alerts: AlertEvent[];
-  demoMode: boolean;
 }

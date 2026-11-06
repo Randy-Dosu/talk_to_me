@@ -19,7 +19,6 @@ function seedStore(patch: Record<string, unknown> = {}) {
     settings: { onboarded: true, displayName: 'Kofi', language: 'en', ...(patch.settings as object) },
     safetyPlan: { warningSigns: [], copingSteps: [], people: [], places: [], reasons: [], professional: '' },
     alerts: [],
-    demoMode: false,
     ...patch,
   };
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(store));

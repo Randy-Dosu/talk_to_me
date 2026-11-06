@@ -103,7 +103,7 @@ export default function Trusted() {
           <div className="mt-4 space-y-3">
             <div>
               <label className="text-[0.74rem] font-medium text-ink" htmlFor="contact-name">Name</label>
-              <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Auntie Efua" className="field mt-1" maxLength={60} />
+              <input id="contact-name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Their name" className="field mt-1" maxLength={60} />
             </div>
             <div>
               <label className="text-[0.74rem] font-medium text-ink" htmlFor="contact-relationship">Relationship</label>

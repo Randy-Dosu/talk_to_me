@@ -109,8 +109,8 @@ help-a-friend content, not a flag on the writer's record.
 | PHQ-9 / GAD-7 response data | Bands, thresholds, item-9 gating | Screens, not diagnoses; performance varies by setting |
 | Ghanaian English/Pidgin seed lexicon (this repo) | Local phrasing | Hand-written, small, unvalidated by native-speaker panel |
 
-**Not used, deliberately:** no real journal entries, no scraped Ghanaian social media, no patient records. The sample data
-in the app is fictional. A production corpus would require consent, ethics approval and a native-speaker annotation
+**Not used, deliberately:** no real journal entries, no scraped Ghanaian social media, no patient records. The app ships
+no sample or demo entries at all. A production corpus would require consent, ethics approval and a native-speaker annotation
 protocol (see `docs/ROADMAP.md` Stage 2 and 8).
 
 ---

@@ -547,29 +547,6 @@ export const CHECK_PROMPTS = [
   'A hard entry is still worth writing. You showed up.',
 ];
 
-export const GHANAIAN_SAMPLE_ENTRIES: { label: string; text: string }[] = [
-  {
-    label: 'A heavy Tuesday',
-    text: 'Chale, I am so tired. I could not sleep again last night, my head was just going. I no dey chop well and everything at work is pressure. I feel like I am carrying something I cannot put down.',
-  },
-  {
-    label: 'Pidgin — fed up',
-    text: 'I don tire for this life. Nobody dey hear me for house, and when I talk they say I dey do drama. I just want make everything stop small. I dey try but the wahala too much.',
-  },
-  {
-    label: 'A good day',
-    text: 'Today was better. I woke up early, went for a walk before the sun came strong, and I actually ate. My sister called me and we laughed for a long time. Medaase, God.',
-  },
-  {
-    label: 'Stigma at home',
-    text: 'I tried to tell my mother that I think I need to see someone and she said it is a spiritual attack, that I should not let people know. Now I am scared to even write this. What will people say?',
-  },
-];
-
-/** Risk-language examples for the in-app "what happens if…" explainer. */
-export const RISK_EXAMPLE = 'I keep thinking everyone would be better off without me. I do not want to wake up tomorrow.';
-
-
 /**
  * Composite escalation: an *intent cue* plus a *death cue* in the same entry is
  * more dangerous than either alone ("I have decided" + "this is the end").

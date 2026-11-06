@@ -32,7 +32,6 @@ import type {
   SafetyPlan,
   StoreShape,
 } from '../engine/types';
-import { buildDemoStore } from './seed';
 
 const STORAGE_KEY = 'nkommo.store.v1';
 const STORE_VERSION = 1;
@@ -67,7 +66,6 @@ const DEFAULT_STORE: StoreShape = {
   settings: DEFAULT_SETTINGS,
   safetyPlan: DEFAULT_PLAN,
   alerts: [],
-  demoMode: false,
 };
 
 function load(): StoreShape {
@@ -101,8 +99,6 @@ export interface StoreApi {
   updatePlan: (patch: Partial<SafetyPlan>) => void;
   addAlert: (trigger: string, preview: string) => void;
   dismissAlert: (alertId: string) => void;
-  loadDemo: () => void;
-  clearDemo: () => void;
   wipe: () => void;
   exportJson: () => string;
 }
@@ -198,43 +194,6 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     }));
   }, []);
 
-  const loadDemo = useCallback(() => {
-    const demo = buildDemoStore();
-    setState((prev) => ({
-      ...prev,
-      entries: demo.entries,
-      checkins: demo.checkins,
-      alerts: demo.alerts,
-      demoMode: true,
-      settings: {
-        ...prev.settings,
-        displayName: prev.settings.displayName || 'Ama',
-        onboarded: true,
-      },
-      safetyPlan: {
-        warningSigns: ['Sleeping badly and waking at 3am', 'Going quiet, leaving messages on read', 'Saying "I am fine" when I am not'],
-        copingSteps: ['Walk before the sun comes strong', 'Call Auntie Efua', 'Write one line even if it is ugly'],
-        people: [{ name: 'Kwesi', phone: '+233 24 000 0000', note: 'Friend — listens without fixing' }],
-        places: ['The quiet bench behind the church', 'My room with the window open'],
-        reasons: ['My small sister', 'The way my mother laughs', 'I want to see what happens next'],
-        professional: '',
-      },
-    }));
-  }, []);
-
-  const clearDemo = useCallback(() => {
-    setState((prev) => ({
-      ...prev,
-      entries: prev.entries.filter((e) => !e.id.startsWith('demo-entry-')),
-      checkins: prev.checkins.filter((c) => !c.id.startsWith('demo-')),
-      alerts: [],
-      demoMode: false,
-      // The sample data seeded the plan too; leaving "Auntie Efua" behind
-      // would quietly invent a contact for a real user.
-      safetyPlan: { ...DEFAULT_PLAN },
-    }));
-  }, []);
-
   const wipe = useCallback(() => {
     erased.current = true;
     setState({ ...DEFAULT_STORE, settings: { ...DEFAULT_SETTINGS } });
@@ -269,12 +228,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       updatePlan,
       addAlert,
       dismissAlert,
-      loadDemo,
-      clearDemo,
       wipe,
       exportJson,
     }),
-    [state, addEntry, removeEntry, setFeltMood, addCheckIn, updateSettings, updatePlan, addAlert, dismissAlert, loadDemo, clearDemo, wipe, exportJson],
+    [state, addEntry, removeEntry, setFeltMood, addCheckIn, updateSettings, updatePlan, addAlert, dismissAlert, wipe, exportJson],
   );
 
   return <StoreContext.Provider value={api}>{children}</StoreContext.Provider>;

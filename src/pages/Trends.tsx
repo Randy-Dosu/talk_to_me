@@ -70,7 +70,7 @@ export default function Trends() {
           <EmptyState
             icon={<TrendingUp size={18} />}
             title="No entries yet"
-            body="Two or three entries across a week is enough to see direction of travel. Load the sample if you want to see the shape of it first."
+            body="Two or three entries across a week is enough to see direction of travel."
             action={
               <Link to="/journal" className="btn btn-primary text-[0.82rem]">Write the first entry</Link>
             }

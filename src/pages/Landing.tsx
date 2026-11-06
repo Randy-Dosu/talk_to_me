@@ -88,7 +88,7 @@ export default function Landing() {
           <div className="anim-rise delay-2">
             <LiveDemo />
             <p className="mt-2 px-1 text-center text-[0.66rem] text-ink-muted">
-              Demo · nothing stored · sample entries written to sound like Accra
+              Nothing stored. The reading runs in this browser.
             </p>
           </div>
         </div>

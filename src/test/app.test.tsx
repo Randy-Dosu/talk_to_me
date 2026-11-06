@@ -69,6 +69,19 @@ describe('journalling flow', () => {
     expect(stored.entries[0].analysis.moodBand).toBeTruthy();
   });
 
+  it('starts empty — no sample data to load, and none left behind', async () => {
+    const user = userEvent.setup();
+    renderAt('/journal');
+    await skipOnboarding(user);
+    await screen.findByLabelText(/write your entry/i);
+
+    expect(screen.queryByText(/sample data|fictional|load the sample/i)).toBeNull();
+    const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
+    expect(stored.entries).toHaveLength(0);
+    expect(stored.checkins).toHaveLength(0);
+    expect('demoMode' in stored).toBe(false);
+  });
+
   it('shows the crisis card automatically when risk language is typed', async () => {
     const user = userEvent.setup();
     renderAt('/journal');
@@ -106,27 +119,6 @@ describe('journalling flow', () => {
     await waitFor(() => {
       const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
       expect(stored.entries[0].feltMood).toBeUndefined();
-    });
-  });
-
-  it('loads and clears sample data without leaving demo artefacts behind', async () => {
-    const user = userEvent.setup();
-    renderAt('/journal');
-    await skipOnboarding(user);
-    await user.click(await screen.findByRole('button', { name: /fictional sample data/i }));
-
-    expect(await screen.findByText(/sample data is loaded/i)).toBeTruthy();
-    let stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
-    expect(stored.demoMode).toBe(true);
-    expect(stored.entries.length).toBeGreaterThan(10);
-
-    await user.click(screen.getByRole('button', { name: /clear sample data/i }));
-    await waitFor(() => {
-      stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
-      expect(stored.demoMode).toBe(false);
-      expect(stored.entries).toHaveLength(0);
-      expect(stored.checkins).toHaveLength(0);
-      expect(stored.safetyPlan.people).toHaveLength(0);
     });
   });
 
@@ -316,11 +308,11 @@ describe('navigation', () => {
     expect(await screen.findByText(/what the reading can do/i)).toBeTruthy();
   });
 
-  it('shows the demo reading on the landing form', async () => {
+  it('reads whatever is typed on the landing form, with nothing preloaded', async () => {
     const user = userEvent.setup();
     renderAt('/welcome');
-    const box = screen.getByLabelText(/sample journal entry/i);
-    await user.clear(box);
+    const box = screen.getByLabelText(/try an entry/i) as HTMLTextAreaElement;
+    expect(box.value).toBe('');
     await user.type(box, 'I feel hopeless and alone.');
     await waitFor(() => {
       expect(screen.getAllByText(/^mood$/i).length).toBeGreaterThan(0);

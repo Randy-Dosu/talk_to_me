@@ -95,7 +95,7 @@ phrase; no network calls in the engine. Met.
 **Objective:** a product that feels like it was made for Accra, not ported to it.
 
 **Work:** design tokens (paper, forest, clay, gold; Fraunces + Inter; adinkra field, kente strip); local-first store with
-versioned schema; one-page signup (alias-friendly, skippable); routing, mobile navigation, demo-mode banner; privacy
+versioned schema; one-page signup (alias-friendly, skippable); routing, mobile navigation; privacy
 controls (export, erase).
 
 **Artefacts:** `src/index.css`, `src/components/*`, `src/data/store.tsx`.

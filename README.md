@@ -16,7 +16,8 @@ serving this demo.
 
 | Area | Status |
 | --- | --- |
-| Landing page with live, editable sentiment demo | ✅ working |
+| Landing page with a live reading of what you type — nothing preloaded | ✅ working |
+| No seed entries, demo personas or sample data anywhere in the build | ✅ verified by test |
 | Chat-style journal: one screen, local-only storage, delete/edit | ✅ working |
 | Morning/evening prompter: questions only, never a suggested answer, once per window | ✅ working + unit tested |
 | Web Notification reminder while the tab is open (no push service) | ⚠️ opt-in, browser-dependent |
@@ -59,7 +60,7 @@ npm run typecheck
 
 First visit: one signup page collects everything the app needs — alias, language, an optional trusted contact, and the
 "not a diagnosis" acknowledgement. The chat then asks for nothing else; every other page is reference material. You can
-skip signup, or load fictional sample data from the empty chat to see the patterns populated.
+skip signup. The app starts empty: there is no seed corpus, demo persona or preloaded entry to clear.
 
 ---
 
@@ -92,7 +93,7 @@ src/
     eval/                  corpus (82 labelled cases), metrics, CLI harness, report.json
   components/              design system, composer, analysis panel, crisis card, charts
   pages/                   Landing, Journal, Patterns, CheckIn, Safety, Trusted, ModelCard, Research, Privacy, About
-  data/                    local-first store, fictional seed data, helplines, citations
+  data/                    local-first store, helplines, citations
   test/                    UI flow tests and jsdom setup
 ml/
   train_emotion.py         RoBERTa fine-tuning on GoEmotions + optional clinical corpora

@@ -19,7 +19,7 @@ const TABS = NAV.slice(0, 4);
 
 export default function Layout() {
   const [open, setOpen] = useState(false);
-  const { state, clearDemo } = useStore();
+  const { state } = useStore();
   useReminderScheduler(state.settings);
   const location = useLocation();
   const isLanding = location.pathname === '/';
@@ -106,19 +106,6 @@ export default function Layout() {
           </div>
         )}
       </header>
-
-      {state.demoMode && (
-        <div className="border-b border-gold/25 bg-gold/10">
-          <div className="container-page flex flex-wrap items-center justify-between gap-2 py-2 text-[0.78rem] text-[#7a5a10]">
-            <span>
-              <strong className="font-semibold">Sample data is loaded.</strong> All fictional, stored in this browser only.
-            </span>
-            <button onClick={clearDemo} className="rounded-full border border-gold/40 px-2.5 py-1 font-medium hover:bg-gold/15">
-              Clear sample data
-            </button>
-          </div>
-        </div>
-      )}
 
       <main className="flex-1">
         <Outlet />

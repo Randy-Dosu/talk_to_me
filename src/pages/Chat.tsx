@@ -61,7 +61,7 @@ function reflection(entry: JournalEntry): string {
 }
 
 export default function Chat() {
-  const { state, addEntry, removeEntry, setFeltMood, loadDemo } = useStore();
+  const { state, addEntry, removeEntry, setFeltMood } = useStore();
   const entries = useSortedEntries();
   const [text, setText] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
@@ -288,15 +288,6 @@ export default function Chat() {
                         {starter.text}
                       </button>
                     ))}
-                  </div>
-                  <div className="mt-4 pl-10">
-                    <button
-                      type="button"
-                      onClick={loadDemo}
-                      className="text-[0.76rem] text-ink-muted underline decoration-line underline-offset-2 hover:text-forest"
-                    >
-                      Or look around with fictional sample data
-                    </button>
                   </div>
                 </div>
               )}

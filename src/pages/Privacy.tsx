@@ -40,7 +40,7 @@ export default function Privacy() {
           { icon: Lock, title: 'Stored', body: 'Journal text, readings, check-in scores, safety plan and settings — in localStorage on this device.' },
           { icon: Mic, title: 'Voice', body: 'Audio is captured by your browser and transcribed by its speech service; Nkommo does not store the audio.' },
           { icon: Download, title: 'Exportable', body: 'One JSON file with everything, including the readings, so you can leave whenever you want.' },
-          { icon: Trash2, title: 'Deletable', body: 'Delete a single entry, clear the sample data, or wipe everything in one tap. No backup exists.' },
+          { icon: Trash2, title: 'Deletable', body: 'Delete a single entry or wipe everything in one tap. No backup exists.' },
         ].map((item) => (
           <div key={item.title} className="card-flat p-4">
             <p className="flex items-center gap-2 text-[0.82rem] font-medium text-ink">

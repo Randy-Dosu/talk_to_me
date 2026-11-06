@@ -431,8 +431,8 @@ export default function ModelCard() {
             The shipping engine uses no training data at runtime — only a hand-built lexicon, which is why it can run
             offline. The taxonomy follows GoEmotions (27 emotions + neutral), which we collapse to eleven categories that
             matter for mood tracking. The risk patterns were written against clinical triage language and iterated with
-            the test set held out. No real journal entries, Reddit posts, or PHQ-9 responses from real people are bundled
-            with this app. The sample data is fictional.
+            the test set held out. No journal entries, Reddit posts, or PHQ-9 responses from real people are bundled
+            with this app — there is no seed corpus, demo persona or preloaded entry anywhere in the build.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
             <Link to="/research" className="btn btn-ghost text-[0.78rem]">
