@@ -129,6 +129,7 @@ person chooses to share. It is a ranking aid, not navigation.
 | Coordinates are approximate town-centre positions | A few hundred metres does not change which hospital is closest, but it is not a route. The UI says this. |
 | Straight-line distance only | Travel time in Accra traffic can triple a 6 km trip. The UI says "straight-line, not travel time". |
 | Phone numbers appear only where publicly verifiable | The three verified switchboards are Accra Psychiatric, Korle Bu and Komfo Anokye. Everywhere else the card points to **0800 678 678** rather than inventing a number. |
+| The region comes from the live coordinate, not a form | The nearest regional centroid labels the region on signup, settings and the safety page. It is a label, not a boundary: border towns can be one region out. |
 | Region fallback is first-class | Geolocation is blocked in many embedded browsers. Picking a region must give the same quality of answer, not a dead end. |
 | Location is stored locally and never transmitted | There is no geocoding request, no map tile, no analytics event. "Forget" clears it. |
 | The card never replaces the helpline | Numbers come first; the clinic is the second step, with "call before you travel". |
@@ -171,5 +172,10 @@ model and never carry a suggested answer.
   blocked or unsupported the in-app card is the fallback, and Settings says so.
 - **Starter copy is clinical-adjacent, not clinical.** State-aware pools
   (low / anxious / angry / numb / good / mixed) are chosen from the last three
-  entries, so a hard week gets a softer opener ("No need to make it neat") rather
-  than a bright one. Nothing is diagnosed from that mapping.
+  entries, so a hard week gets a question from the low pool rather than a bright
+  one. Nothing is diagnosed from that mapping.
+- **Questions only, no suggested answer.** Every starter and opener ends in a
+  question mark; none contains an instruction, a reframe, or an answer. Tapping a
+  starter shows the question above the composer and leaves the textarea empty, so
+  the words that reach the analyser are the writer's, not the app's. Tests assert
+  both properties.

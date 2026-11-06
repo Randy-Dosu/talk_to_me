@@ -9,6 +9,7 @@ import type { JournalEntry } from '../engine/types';
 import {
   EVENING_STARTERS,
   MORNING_STARTERS,
+  OPENER_VARIANTS,
   STATE_STARTERS,
   daySeed,
   openerFor,
@@ -72,11 +73,34 @@ describe('starter bank', () => {
     expect(bright).toBe('good');
   });
 
-  it('uses two low entries in the last three to soften the opener', () => {
+  it('uses two low entries in the last three to pick the softer pool', () => {
     const low = 'I feel worthless and hopeless and I cannot get out of bed.';
     expect(stateFromEntries([entry(low, 'a'), entry(low, 'b')])).toBe('low');
-    expect(openerFor('evening', 'low', 1)).toMatch(/no need to make it neat/i);
-    expect(openerFor('evening', 'good', 1)).toMatch(/good days deserve detail/i);
+    const picks = pickStarters('evening', 'low', 7);
+    expect(picks[2].mechanism).toBe(STATE_STARTERS.low[7 % STATE_STARTERS.low.length].mechanism);
+  });
+
+  it('asks questions only — no advice and no bundled answer', () => {
+    const all = [
+      ...Object.values(STATE_STARTERS).flat(),
+      ...MORNING_STARTERS,
+      ...EVENING_STARTERS,
+      ...Object.values(OPENER_VARIANTS).flat(),
+    ];
+    for (const starter of all) {
+      const text = typeof starter === 'string' ? starter : starter.text;
+      expect(text.trim().endsWith('?')).toBe(true);
+      expect(text).not.toMatch(/you should|try to|remember to|it is worth|no need to|slow is fine|deserve detail/i);
+    }
+  });
+
+  it('keeps openers to one question, regardless of state', () => {
+    for (const state of ['low', 'anxious', 'angry', 'numb', 'good', 'mixed'] as const) {
+      const opener = openerFor('evening', state, 2);
+      expect(opener.endsWith('?')).toBe(true);
+      expect(opener).not.toMatch(/no need|slow is fine|deserve/i);
+      expect(opener).toBe(OPENER_VARIANTS.evening[2]);
+    }
   });
 });
 
@@ -182,7 +206,7 @@ describe('prompter in the app', () => {
     for (const starter of expected) expect(labels).toContain(starter.text);
   });
 
-  it('shows the evening prompter, prefills the composer from a starter, and stays dismissed', async () => {
+  it('shows the evening prompter, shows a starter without writing the answer, and stays dismissed', async () => {
     const { unmount } = renderChat();
     const user = await enterChat();
 
@@ -190,10 +214,14 @@ describe('prompter in the app', () => {
     expect(screen.getByText(/close the day/i)).toBeTruthy();
 
     const starter = pickStarters('evening', 'mixed', daySeed(new Date('2026-11-05T20:10:00')))[0];
-    await user.click(screen.getAllByRole('button', { name: new RegExp(starter.text.replace(/[?.]/g, '.')) })[0]);
+    await user.click(within(await screen.findByLabelText(/evening check-in/i)).getByText(starter.text));
 
+    // The question is shown; the answer is not written for them.
+    expect((await screen.findAllByLabelText(/starter question/i)).length).toBeGreaterThan(0);
     const box = screen.getByLabelText(/write your entry/i) as HTMLTextAreaElement;
-    await waitFor(() => expect(box.value.startsWith(starter.text)).toBe(true));
+    await waitFor(() => expect(box.value).toBe(''));
+    await user.type(box, 'It was a long one.');
+    expect(screen.getAllByLabelText(/starter question/i)[0].textContent).toContain(starter.text);
 
     await user.click(screen.getByRole('button', { name: /dismiss for today/i }));
     await waitFor(() => expect(screen.queryByLabelText(/evening check-in/i)).toBeNull());

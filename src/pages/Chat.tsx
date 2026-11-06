@@ -11,6 +11,7 @@ import {
   Settings2,
   Sparkles,
   Trash2,
+  X,
 } from 'lucide-react';
 import CrisisCard from '../components/CrisisCard';
 import DayPrompter from '../components/DayPrompter';
@@ -71,6 +72,8 @@ export default function Chat() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<string, ReplyState>>({});
   const [promptDismissed, setPromptDismissed] = useState(false);
+  /** The starter being answered — shown above the composer, never typed for them. */
+  const [asking, setAsking] = useState<string | null>(null);
   const now = new Date();
   const hour = now.getHours();
   const slotPrompt = promptWindow(now);
@@ -119,6 +122,7 @@ export default function Chat() {
     setText('');
     setUsedVoice(false);
     setFilter(null);
+    setAsking(null);
     inputRef.current?.focus();
 
     const token = getHfToken();
@@ -241,8 +245,8 @@ export default function Chat() {
                   onEnableNotifications={() => {
                     void reminders.requestPermission();
                   }}
-                  onUse={(text) => {
-                    setText(`${text} `);
+                  onUse={(question) => {
+                    setAsking(question);
                     inputRef.current?.focus();
                   }}
                   onDismiss={() => {
@@ -275,7 +279,7 @@ export default function Chat() {
                         key={starter.id}
                         type="button"
                         onClick={() => {
-                          setText(`${starter.text} `);
+                          setAsking(starter.text);
                           inputRef.current?.focus();
                         }}
                         title={starter.mechanism}
@@ -474,6 +478,22 @@ export default function Chat() {
 
             {/* -------- composer -------- */}
             <div className="sticky bottom-16 z-20 pb-2 lg:bottom-0">
+              {asking && (
+                <div
+                  className="mb-1.5 flex items-start justify-between gap-3 rounded-xl border border-line/80 bg-white/70 px-3 py-2"
+                  aria-label="Starter question"
+                >
+                  <p className="text-[0.8rem] leading-snug text-ink-soft">{asking}</p>
+                  <button
+                    type="button"
+                    onClick={() => setAsking(null)}
+                    className="shrink-0 rounded-full p-1 text-ink-muted hover:bg-ink/5 hover:text-ink"
+                    aria-label="Clear starter question"
+                  >
+                    <X size={12} />
+                  </button>
+                </div>
+              )}
               <div className="rounded-2xl border border-line bg-paper/95 p-2 shadow-[0_-8px_24px_-24px_rgba(22,33,29,0.5)] backdrop-blur">
                 <label htmlFor="entry" className="sr-only">
                   Write your entry

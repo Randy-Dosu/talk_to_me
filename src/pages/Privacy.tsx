@@ -74,7 +74,7 @@ export default function Privacy() {
           <ul className="mt-3 space-y-2 text-[0.86rem] leading-relaxed text-ink-soft">
             <li>· Nothing, unless you press the microphone button — then your browser vendor&rsquo;s speech service receives the audio.</li>
             <li>· If you copy an alert draft, it goes wherever you paste it. That is your decision, not ours.</li>
-            <li>· Your location, if you use the nearest-clinic feature, stays in this browser. Distance is computed locally against a bundled list — no map tiles, no geocoding request.</li>
+            <li>· Your location, if you use the nearest-clinic feature, stays in this browser. The region label is derived from the coordinate locally, and distance is computed against a bundled list — no map tiles, no geocoding request.</li>
             <li>· If you turn on Hugging Face replies in Settings, entry text leaves the device to that service. High-risk entries never do. The token lives in session storage.</li>
             <li>· The app loads its own fonts and code from the same origin as the page. No third-party requests otherwise.</li>
             <li>· No crash reporting, no session recording, no A/B testing, no advertising identifiers.</li>

@@ -225,6 +225,7 @@ They are not wired into the demo.
 | `src/data/facilities.ts` — 17 service points, 16 regions, coordinates + verified phones only | ✅ |
 | `src/lib/geo.ts` — haversine, ranking, region fallback, human-readable distance | ✅ tested |
 | `src/lib/useGeoLocation.ts` — permission states: denied, unavailable, timeout, ready | ✅ tested |
+| `src/lib/useLiveRegion.ts` — coordinate → region (`regionForPoint`), read on signup and settings | ✅ tested |
 | `NearestHelp` in the crisis card and on `/safety` | ✅ |
 | `src/lib/hfChat.ts` — chat-completions adapter, local-only gate, reply sanitiser | ✅ tested with a mocked endpoint |
 | `/settings` — consent-gated token, model id, test connection, forget token | ✅ |
@@ -254,7 +255,8 @@ What production still needs:
 
 Prompt design rules:
 
-- Questions only. No suggested answers, no advice, no diagnoses.
+- Questions only. No suggested answers, no advice, no diagnoses. Tapping a starter
+  shows the question and leaves the composer empty.
 - Two time-based starters + one chosen from the last three entries' state.
 - Dismissal keyed by date + window; one prompt per window per day.
 - The notification body is a question; no journal content leaves the page.

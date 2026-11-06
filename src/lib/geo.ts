@@ -1,4 +1,4 @@
-import { FACILITIES, REGION_CENTROIDS, type Facility, type Region } from '../data/facilities';
+import { FACILITIES, REGION_CENTROIDS, REGIONS, type Facility, type Region } from '../data/facilities';
 
 export interface GeoPoint {
   lat: number;
@@ -34,6 +34,24 @@ export function rankFacilities(origin: GeoPoint, count = 3): RankedFacility[] {
 
 export function nearestFacility(origin: GeoPoint): RankedFacility {
   return rankFacilities(origin, 1)[0];
+}
+
+/**
+ * Which region a coordinate falls in, approximated as the nearest regional
+ * centroid. Good enough to label a location and to pre-fill the region field;
+ * it is not a legal boundary. Ties and border towns can be off by a region.
+ */
+export function regionForPoint(point: GeoPoint): Region {
+  let best: Region = REGIONS[0];
+  let bestKm = Number.POSITIVE_INFINITY;
+  for (const region of REGIONS) {
+    const km = distanceKm(point, REGION_CENTROIDS[region]);
+    if (km < bestKm) {
+      bestKm = km;
+      best = region;
+    }
+  }
+  return best;
 }
 
 /** Someone who would rather tap a region than share GPS. */

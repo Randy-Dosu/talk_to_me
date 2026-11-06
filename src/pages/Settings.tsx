@@ -7,10 +7,13 @@ import { useStore } from '../data/store';
 import { DEFAULT_HF_MODEL, getHfToken, setHfToken, testHfConnection } from '../lib/hfChat';
 import { formatClock } from '../lib/dayPrompter';
 import { useNotificationPermission } from '../lib/useReminders';
+import { useLiveRegion } from '../lib/useLiveRegion';
 
 export default function Settings() {
   const { state, updateSettings } = useStore();
   const notifications = useNotificationPermission();
+  // The region label and clinic ranking come from the device, not a form.
+  const live = useLiveRegion(true);
   const [model, setModel] = useState(state.settings.ai.model || DEFAULT_HF_MODEL);
   const [token, setToken] = useState(getHfToken());
   const [consent, setConsent] = useState(state.settings.ai.enabled);
@@ -132,9 +135,17 @@ export default function Settings() {
           <h2 className="font-display text-[1.2rem] text-ink">Location for nearby clinics</h2>
         </div>
         <p className="mb-3 max-w-xl text-[0.84rem] leading-relaxed text-ink-muted">
-          Used once, on this device, to rank the nearest mental-health services. Coordinates are never sent anywhere —
-          the distance is calculated in the browser against a list that ships with the app.
+          Read from this device, used to rank nearby services. Never sent anywhere.
         </p>
+        <div className="mb-2 flex flex-wrap items-center gap-2 rounded-xl border border-line bg-white/60 px-3 py-2">
+          <MapPin size={12} className="text-forest" />
+          <span className="text-[0.8rem] text-ink">
+            Region: <span className="font-medium">{live.region ?? (live.locating ? 'finding it…' : 'not detected yet')}</span>
+          </span>
+          <span className="text-[0.7rem] text-ink-muted">
+            {state.settings.location?.source === 'gps' ? 'live location' : state.settings.location ? 'chosen by you' : 'open the safety page or use the button below'}
+          </span>
+        </div>
         <NearestHelp />
       </section>
 

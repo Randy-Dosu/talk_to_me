@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Navigation, Phone, Crosshair } from 'lucide-react';
 import { useStore } from '../data/store';
-import { formatKm, rankFacilities, regionOrigin } from '../lib/geo';
+import { formatKm, rankFacilities, regionForPoint, regionOrigin } from '../lib/geo';
 import { useGeoLocation } from '../lib/useGeoLocation';
 import { HELPLINE_TEXT, HELPLINE_TEL, NEAREST_DISCLAIMER, REGIONS, type Region } from '../data/facilities';
 
@@ -23,6 +23,7 @@ export default function NearestHelp({ compact = false }: { compact?: boolean }) 
       location: {
         lat: point.lat,
         lng: point.lng,
+        region: regionForPoint(point),
         label: 'your approximate position',
         source: 'gps',
         updatedAt: new Date().toISOString(),
@@ -37,6 +38,7 @@ export default function NearestHelp({ compact = false }: { compact?: boolean }) 
       location: {
         lat: point.lat,
         lng: point.lng,
+        region: value,
         label: value,
         source: 'manual',
         updatedAt: new Date().toISOString(),
@@ -55,7 +57,9 @@ export default function NearestHelp({ compact = false }: { compact?: boolean }) 
           Nearest mental-health service
         </p>
         {saved && (
-          <span className="ml-auto text-[0.66rem] text-ink-muted">{saved.source === 'gps' ? 'from your location' : saved.label}</span>
+          <span className="ml-auto text-[0.66rem] text-ink-muted">
+            {saved.source === 'gps' ? `${saved.region ?? 'live'} · from your location` : saved.label}
+          </span>
         )}
       </div>
 

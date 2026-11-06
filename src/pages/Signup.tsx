@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ArrowRight, Check, Lock, MapPin, Phone, ShieldCheck, UserPlus } from 'lucide-react';
+import { ArrowRight, Check, Crosshair, Lock, MapPin, Phone, ShieldCheck, UserPlus } from 'lucide-react';
 import { useStore } from '../data/store';
 import { Mark } from '../components/Logo';
 import { REGIONS, REGION_CENTROIDS, type Region } from '../data/facilities';
+import { useLiveRegion } from '../lib/useLiveRegion';
 
 /**
  * Everything Nkommo needs lives on one page. Nothing is asked again inside the
@@ -18,8 +19,13 @@ export default function Signup() {
   const [contactPhone, setContactPhone] = useState(state.settings.trusted?.phone ?? '');
   const [consented, setConsented] = useState(Boolean(state.settings.trusted?.enabled));
   const [acknowledged, setAcknowledged] = useState(state.settings.onboarded);
-  const [region, setRegion] = useState<Region | ''>((state.settings.location?.label as Region) ?? '');
+  const [region, setRegion] = useState<Region | ''>(
+    state.settings.location?.source === 'manual' ? (state.settings.location.label as Region) : '',
+  );
+  const [pickingRegion, setPickingRegion] = useState(false);
   const [showErrors, setShowErrors] = useState(false);
+  const live = useLiveRegion(true);
+  const shownRegion = region || live.region;
 
   const nameOk = alias.trim().length > 0;
   const contactOk = !contactName.trim() || consented;
@@ -50,6 +56,7 @@ export default function Signup() {
         ? {
             lat: centroid.lat,
             lng: centroid.lng,
+            region: region as Region,
             label: region,
             source: 'manual',
             updatedAt: new Date().toISOString(),
@@ -121,30 +128,61 @@ export default function Signup() {
             ))}
           </div>
 
-          {/* 3. region */}
+          {/* 3. region, read from the device */}
           <div className="mt-5 flex items-center gap-1.5">
             <MapPin size={14} className="text-forest" />
-            <label htmlFor="region" className="text-[0.82rem] font-medium text-ink">
-              Which region are you in?
-            </label>
-            <span className="ml-auto text-[0.66rem] uppercase tracking-[0.08em] text-ink-muted">optional</span>
+            <p className="text-[0.82rem] font-medium text-ink">Your region</p>
+            <span className="ml-auto text-[0.66rem] uppercase tracking-[0.08em] text-ink-muted">from location</span>
           </div>
           <p className="mt-0.5 text-[0.74rem] text-ink-muted">
-            Used on this device to put the nearest clinic in your crisis card. Never sent anywhere.
+            Read from this device to rank nearby clinics. Never sent anywhere.
           </p>
-          <select
-            id="region"
-            value={region}
-            onChange={(event) => setRegion(event.target.value as Region | '')}
-            className="field mt-2 w-full text-[0.84rem]"
-          >
-            <option value="">Prefer not to say</option>
-            {REGIONS.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
+
+          {shownRegion && !pickingRegion ? (
+            <div className="mt-2 flex items-center justify-between gap-2 rounded-xl border border-forest/25 bg-forest/6 px-3 py-2">
+              <span className="text-[0.84rem] text-ink">
+                <span className="font-medium">{shownRegion}</span>
+                <span className="text-ink-muted"> · {region ? 'chosen' : 'live location'}</span>
+              </span>
+              <button
+                type="button"
+                onClick={() => setPickingRegion(true)}
+                className="text-[0.74rem] text-forest underline decoration-line underline-offset-2"
+              >
+                Change
+              </button>
+            </div>
+          ) : (
+            <>
+              <select
+                id="region"
+                value={region}
+                onChange={(event) => setRegion(event.target.value as Region | '')}
+                className="field mt-2 w-full text-[0.84rem]"
+                aria-label="Which region are you in?"
+              >
+                <option value="">{live.locating ? 'Finding your region…' : 'Prefer not to say'}</option>
+                {REGIONS.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+              <div className="mt-1.5 flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setRegion('');
+                    void live.detect();
+                  }}
+                  className="inline-flex items-center gap-1 text-[0.74rem] text-forest hover:underline"
+                >
+                  <Crosshair size={12} /> {live.locating ? 'Locating…' : 'Use my live location'}
+                </button>
+                {live.message && <span className="text-[0.72rem] leading-snug text-[#6f5310]">{live.message}</span>}
+              </div>
+            </>
+          )}
 
           {/* 4. trusted contact */}
           <div className="mt-5 flex items-center gap-1.5">

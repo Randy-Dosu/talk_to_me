@@ -161,6 +161,8 @@ export interface SafetyPlan {
 export interface SavedLocation {
   lat: number;
   lng: number;
+  /** Derived from the coordinate (nearest regional centroid), or chosen by hand. */
+  region?: import('../data/facilities').Region;
   /** Human label: 'Accra' from GPS, or the region name when picked manually. */
   label: string;
   source: 'gps' | 'manual';

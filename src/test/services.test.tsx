@@ -5,7 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from '../App';
 import { StoreProvider } from '../data/store';
 import { FACILITIES, REGIONS, REGION_CENTROIDS } from '../data/facilities';
-import { distanceKm, formatKm, nearestFacility, rankFacilities, regionOrigin } from '../lib/geo';
+import { distanceKm, formatKm, nearestFacility, rankFacilities, regionForPoint, regionOrigin } from '../lib/geo';
 import { DEFAULT_HF_MODEL, maySendToModel, sanitizeReply, setHfToken, hfReply } from '../lib/hfChat';
 import { analyse } from '../engine/analyze';
 
@@ -73,6 +73,14 @@ describe('facility data', () => {
       expect(facility.services.length).toBeGreaterThan(0);
       if (facility.tel) expect(facility.tel.replace(/\D/g, '').length).toBeGreaterThanOrEqual(9);
     }
+  });
+
+  it('reads a region from a live coordinate', () => {
+    expect(regionForPoint({ lat: 5.6037, lng: -0.187 })).toBe('Greater Accra');
+    expect(regionForPoint({ lat: 6.6885, lng: -1.6244 })).toBe('Ashanti');
+    expect(regionForPoint({ lat: 9.4008, lng: -0.8393 })).toBe('Northern');
+    expect(regionForPoint({ lat: 6.6008, lng: 0.4713 })).toBe('Volta');
+    expect(regionForPoint({ lat: 10.0601, lng: -2.5099 })).toBe('Upper West');
   });
 
   it('covers every region with a centroid', () => {
@@ -186,6 +194,8 @@ describe('nearby services in the app', () => {
     const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
     expect(stored.settings.location.source).toBe('gps');
     expect(stored.settings.location.lat).toBeCloseTo(5.6037, 3);
+    expect(stored.settings.location.region).toBe('Greater Accra');
+    expect((await screen.findAllByText(/greater accra · from your location/i)).length).toBeGreaterThan(0);
   });
 
   it('falls back to a region when location is blocked', async () => {
@@ -202,6 +212,41 @@ describe('nearby services in the app', () => {
     const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
     expect(stored.settings.location.label).toBe('Ashanti');
     expect(stored.settings.location.source).toBe('manual');
+  });
+
+  it('fills the signup region from the device instead of asking', async () => {
+    mockGeolocation('success');
+    const user = userEvent.setup();
+    renderAt('/signup');
+
+    expect((await screen.findAllByText(/greater accra/i)).length).toBeGreaterThan(0);
+    expect(screen.getAllByText(/live location/i).length).toBeGreaterThan(0);
+    // The manual picker is a fallback, not the first thing asked.
+    expect(screen.queryByLabelText(/which region are you in/i)).toBeNull();
+
+    await user.type(screen.getByLabelText(/what should i call you/i), 'Ama');
+    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
+    await user.click(screen.getByRole('button', { name: /start writing/i }));
+
+    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored.settings.location.source).toBe('gps');
+    expect(stored.settings.location.region).toBe('Greater Accra');
+    expect(stored.settings.displayName).toBe('Ama');
+  });
+
+  it('keeps a manual region pick when the device is blocked', async () => {
+    mockGeolocation('denied');
+    const user = userEvent.setup();
+    renderAt('/signup');
+
+    await user.selectOptions(await screen.findByLabelText(/which region are you in/i), 'Ashanti');
+    await user.type(screen.getByLabelText(/what should i call you/i), 'Kwame');
+    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
+    await user.click(screen.getByRole('button', { name: /start writing/i }));
+
+    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
+    expect(stored.settings.location.source).toBe('manual');
+    expect(stored.settings.location.region).toBe('Ashanti');
   });
 
   it('puts the nearest hospital inside the crisis card', async () => {
