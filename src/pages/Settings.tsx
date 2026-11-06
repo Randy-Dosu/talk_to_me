@@ -4,7 +4,7 @@ import { Bell, BrainCircuit, Check, Cloud, CloudDownload, CloudUpload, KeyRound,
 import NearestHelp from '../components/NearestHelp';
 import { SectionHeading } from '../components/ui';
 import { useStore } from '../data/store';
-import { DEFAULT_HF_MODEL, getHfToken, setHfToken, testHfConnection } from '../lib/hfChat';
+import { DEFAULT_HF_MODEL, getHfToken, setHfToken, testHfConnection, usingProxy } from '../lib/hfChat';
 import { formatClock } from '../lib/dayPrompter';
 import { useNotificationPermission } from '../lib/useReminders';
 import { useLiveRegion } from '../lib/useLiveRegion';
@@ -39,7 +39,15 @@ export default function Settings() {
   const runTest = async () => {
     setTest({ state: 'testing' });
     const result = await testHfConnection(model.trim() || DEFAULT_HF_MODEL, token);
-    setTest({ state: result.ok ? 'ok' : 'fail', message: result.error });
+    if (result.ok && result.model) {
+      // Adopt the model that actually answered, so the chat uses a live one.
+      setModel(result.model);
+      updateSettings({ ai: { enabled: consent, model: result.model } });
+    }
+    setTest({
+      state: result.ok ? 'ok' : 'fail',
+      message: result.ok ? `Connected via ${result.model}` : result.error,
+    });
   };
 
   return (
@@ -352,12 +360,12 @@ export default function Settings() {
           </div>
           <div className="mt-1.5 flex flex-wrap items-center gap-3 text-[0.7rem]">
             <span className="inline-flex items-center gap-1.5 text-ink-muted">
-              <KeyRound size={10} /> kept in this tab only
+              <KeyRound size={10} /> {usingProxy() ? 'handled by the proxy' : 'kept in this tab only'}
             </span>
             {test.state === 'testing' && <span className="text-ink-muted">Testing…</span>}
             {test.state === 'ok' && (
               <span className="inline-flex items-center gap-1 text-[#456b4b]">
-                <Check size={11} /> Reachable
+                <Check size={11} /> {test.message ?? 'Reachable'}
               </span>
             )}
             {test.state === 'fail' && (
@@ -385,7 +393,12 @@ export default function Settings() {
           </label>
 
           <div className="mt-4 flex flex-wrap items-center gap-2">
-            <button type="button" onClick={connect} disabled={!token || (!enabled && !consent)} className="btn btn-primary text-[0.82rem]">
+            <button
+              type="button"
+              onClick={connect}
+              disabled={(!token && !usingProxy()) || (!enabled && !consent)}
+              className="btn btn-primary text-[0.82rem]"
+            >
               {enabled ? 'Update' : 'Turn on model replies'}
             </button>
             {enabled && (

@@ -19,7 +19,7 @@ import VoiceSheet from '../components/VoiceSheet';
 import { Mark } from '../components/Logo';
 import { MoodBadge } from '../components/ui';
 import { useStore, useSortedEntries } from '../data/store';
-import { getHfToken, hfReply, maySendToModel } from '../lib/hfChat';
+import { getHfToken, hfReply, maySendToModel, usingProxy } from '../lib/hfChat';
 import { dayKey, formatDay, formatTime } from '../engine/id';
 import { questionFor } from '../data/prompts';
 import { dismiss, isDismissed, periodLabel, periodOfDay, promptWindow } from '../lib/dayPrompter';
@@ -34,6 +34,8 @@ interface ReplyState {
   text: string;
   source: 'local' | 'hf';
   note?: string;
+  /** The model that actually answered, which may be a fallback. */
+  model?: string;
 }
 
 function reflection(entry: JournalEntry): string {
@@ -60,7 +62,7 @@ function reflection(entry: JournalEntry): string {
 }
 
 export default function Chat() {
-  const { state, addEntry, removeEntry, setFeltMood } = useStore();
+  const { state, addEntry, removeEntry, setFeltMood, updateSettings } = useStore();
   const entries = useSortedEntries();
   const [text, setText] = useState('');
   const [filter, setFilter] = useState<string | null>(null);
@@ -139,7 +141,8 @@ export default function Chat() {
     inputRef.current?.focus();
 
     const token = getHfToken();
-    if (!state.settings.ai.enabled || !token || !maySendToModel(entry.analysis, entry.text)) return;
+    if (!state.settings.ai.enabled || (!token && !usingProxy())) return;
+    if (!maySendToModel(entry.analysis, entry.text)) return;
 
     setReplies((prev) => ({
       ...prev,
@@ -151,10 +154,14 @@ export default function Chat() {
       model: state.settings.ai.model,
       token,
     });
+    if (result.ok && result.model && result.model !== state.settings.ai.model) {
+      // Remember the model that answered, so the next reply does not retry a dead id.
+      updateSettings({ ai: { ...state.settings.ai, model: result.model } });
+    }
     setReplies((prev) => ({
       ...prev,
       [entry.id]: result.ok
-        ? { status: 'ready', text: result.text, source: 'hf' }
+        ? { status: 'ready', text: result.text, source: 'hf', model: result.model }
         : {
             status: 'ready',
             text: reflection(entry),
@@ -382,7 +389,7 @@ export default function Chat() {
 
                         <p className="mt-1 text-[0.64rem] text-ink-muted">
                           {replies[entry.id]?.source === 'hf'
-                            ? `via ${state.settings.ai.model}`
+                            ? `via ${replies[entry.id]?.model ?? state.settings.ai.model}`
                             : replies[entry.id]?.note
                               ? `${replies[entry.id]?.note} · on-device reading`
                               : 'on-device reading'}

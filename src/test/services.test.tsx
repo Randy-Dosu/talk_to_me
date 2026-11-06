@@ -6,7 +6,7 @@ import App from '../App';
 import { StoreProvider } from '../data/store';
 import { FACILITIES, REGIONS, REGION_CENTROIDS } from '../data/facilities';
 import { distanceKm, formatKm, nearestFacility, rankFacilities, regionForPoint, regionOrigin } from '../lib/geo';
-import { DEFAULT_HF_MODEL, maySendToModel, sanitizeReply, setHfToken, hfReply } from '../lib/hfChat';
+import { DEFAULT_HF_MODEL, HF_MODEL_CANDIDATES, maySendToModel, sanitizeReply, setHfToken, hfReply } from '../lib/hfChat';
 import { analyse } from '../engine/analyze';
 
 const STORAGE_KEY = 'nkommo.store.v1';
@@ -57,6 +57,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.unstubAllGlobals();
+  vi.unstubAllEnvs();
   vi.restoreAllMocks();
 });
 
@@ -163,6 +164,52 @@ describe('hugging face adapter', () => {
     expect(body.model).toBe('test/model');
     expect(body.messages[0].content).toMatch(/never diagnose/i);
     expect(body.messages.at(-1)?.content).toContain('Long day.');
+  });
+
+  it('falls back to a served model when the chosen id is retired', async () => {
+    let call = 0;
+    const fetchMock = vi.fn(async () => {
+      call += 1;
+      if (call === 1) return new Response(JSON.stringify({ error: 'Model not found' }), { status: 404 });
+      return new Response(JSON.stringify({ choices: [{ message: { content: 'That sounds heavy. What was the hardest part?' } }] }), {
+        status: 200,
+      });
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await hfReply({ text: 'Long day.', analysis: safeAnalysis, model: 'retired/model', token: 'hf_abc' });
+    expect(result.ok).toBe(true);
+    expect(result.model).toBe(HF_MODEL_CANDIDATES[0]);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondBody = JSON.parse(String((fetchMock.mock.calls[1] as unknown as [string, RequestInit])[1].body)) as { model: string };
+    expect(secondBody.model).toBe(HF_MODEL_CANDIDATES[0]);
+  });
+
+  it('reads content that arrives as parts instead of a string', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({ choices: [{ message: { content: [{ type: 'text', text: 'That sounds exhausting.' }, { type: 'text', text: 'What helped?' }] } }] }),
+          { status: 200 },
+        ),
+      ),
+    );
+    const result = await hfReply({ text: 'Long day.', analysis: safeAnalysis, model: 'test/model', token: 'hf_abc' });
+    expect(result.ok).toBe(true);
+    expect(result.text).toBe('That sounds exhausting. What helped?');
+  });
+
+  it('can use a server proxy, where the token is not in the browser', async () => {
+    vi.stubEnv('VITE_HF_ENDPOINT', 'https://proxy.example.test/chat');
+    const fetchMock = vi.fn(async () => new Response(JSON.stringify({ choices: [{ message: { content: 'Kept. How was the rest of it?' } }] }), { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    const result = await hfReply({ text: 'Long day.', analysis: safeAnalysis, model: 'test/model', token: '' });
+    expect(result.ok).toBe(true);
+    const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+    expect(url).toBe('https://proxy.example.test/chat');
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
   });
 
   it('reports auth, network and empty answers without throwing', async () => {

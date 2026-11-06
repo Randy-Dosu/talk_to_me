@@ -24,7 +24,7 @@ serving this demo.
 | One-page signup: alias, language, trusted contact, acknowledgement | ✅ working |
 | Voice journalling: mic permission gate, live level meter, restart-on-pause, editable transcript | ✅ working (browser-dependent) |
 | Region + nearest clinic from live device location (manual region only as fallback), offline | ✅ working + unit tested |
-| Optional Hugging Face replies, with crisis text blocked from leaving the device | ✅ adapter + UI tested over HTTP; live call needs a token and open network |
+| Optional Hugging Face replies: model fallback, proxy mode, crisis text blocked from leaving the device | ✅ adapter + UI tested over HTTP; live call needs a token and open network |
 | Analysis engine: valence, negation, intensifiers, 11 emotions, distress index | ✅ working + unit tested |
 | Safety pass: 3 risk tiers, sentence-level suppression, third-person attribution | ✅ working + unit tested |
 | Explainability: every reading expands into the phrases behind it | ✅ working |
@@ -55,10 +55,10 @@ Other scripts:
 
 ```bash
 npm run build      # typecheck + production build
-npm test           # 112 tests: engine, geo ranking, HF adapter, prompts/prompter, chat flows, route smoke
+npm test           # 115 tests: engine, geo ranking, HF adapter, prompts/prompter, chat flows, route smoke
 npm run eval       # regenerates src/engine/eval/report.json (the model card numbers)
 npm run bench      # engine + question-builder timings and bundle size -> bench.json
-npm run hf:smoke   # real HTTP round trip of the HF adapter against a local mock endpoint
+npm run hf:smoke   # 13 real HTTP checks of the HF adapter against a local mock endpoint
 npm run typecheck
 ```
 
@@ -90,7 +90,7 @@ Run with `npm run eval` (labelled corpus) and `npm run bench` (engine + bundle).
 - **Tailwind CSS v4** — design tokens in `src/index.css` (warm paper, forest, clay, gold; Fraunces + Inter).
 - **Recharts** — mood trend chart.
 - **Custom engine in `src/engine`** — no runtime model download, no network, deterministic and explainable.
-- **Vitest + Testing Library + jsdom** — 112 tests including the signup, chat, voice, location-ranking, HF-adapter, prompter-scheduling and safety flows.
+- **Vitest + Testing Library + jsdom** — 115 tests including the signup, chat, voice, location-ranking, HF-adapter, prompter-scheduling and safety flows.
 - **Python reference path in `ml/`** — FastAPI service and a RoBERTa/GoEmotions fine-tuning script for the production
   model, kept separate so it never pretends to be what the demo runs.
 

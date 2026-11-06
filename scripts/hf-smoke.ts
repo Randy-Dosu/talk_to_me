@@ -14,6 +14,7 @@ import { DEFAULT_HF_MODEL, hfReply, maySendToModel, testHfConnection } from '../
 
 let lastBody = '';
 let requests = 0;
+let failAllModels = false;
 
 const server = createServer((req, res) => {
   let body = '';
@@ -23,19 +24,27 @@ const server = createServer((req, res) => {
   req.on('end', () => {
     requests += 1;
     lastBody = body;
+    const url = req.url ?? '';
+    const isProxy = url.startsWith('/proxy');
     const auth = req.headers.authorization ?? '';
     const send = (status: number, payload: unknown) => {
       res.writeHead(status, { 'Content-Type': 'application/json' });
       res.end(JSON.stringify(payload));
     };
 
-    if (!auth.startsWith('Bearer good-')) {
+    if (!isProxy && !auth.startsWith('Bearer good-')) {
       send(401, { error: 'Invalid credentials' });
       return;
     }
     const parsed = JSON.parse(body) as { model?: string };
-    if (parsed.model === 'nobody/nothing') {
+    if (failAllModels || parsed.model === 'nobody/nothing' || parsed.model === 'retired/model') {
       send(404, { error: 'Model not found' });
+      return;
+    }
+    if (parsed.model === 'array/model') {
+      send(200, {
+        choices: [{ message: { content: [{ type: 'text', text: 'That sounds heavy.' }, { type: 'text', text: 'What helped?' }] } }],
+      });
       return;
     }
     if (parsed.model === 'diagnosis/model') {
@@ -67,7 +76,7 @@ const rejected = await hfReply({ ...safe, token: 'bad-token' });
 check('rejects a refused token', rejected.kind === 'auth', rejected.error ?? '');
 
 const missing = await hfReply({ ...safe, token: 'good-token', model: 'nobody/nothing' });
-check('explains a missing model', missing.kind === 'bad' && /not served/i.test(missing.error ?? ''), missing.error ?? '');
+check('a dead model id falls back', missing.ok, `answered by ${missing.model}`);
 
 const reply = await hfReply({ ...safe, token: 'good-token' });
 check('returns a sanitised reflection', reply.ok && reply.text.length > 0, JSON.stringify(reply.text));
@@ -81,6 +90,26 @@ check('Settings connection test passes', connection.ok, connection.error ?? 'rea
 
 const crisis = analyse('I do not want to be here anymore.');
 check('crisis text never leaves the device', !maySendToModel(crisis, 'I do not want to be here anymore.'), 'blocked locally');
+
+const fallback = await hfReply({ ...safe, token: 'good-token', model: 'retired/model' });
+check('falls back to a served model', fallback.ok && fallback.model === DEFAULT_HF_MODEL, `answered by ${fallback.model}`);
+
+const parts = await hfReply({ ...safe, token: 'good-token', model: 'array/model' });
+check('reads array-shaped content', parts.ok && parts.text === 'That sounds heavy. What helped?', JSON.stringify(parts.text));
+
+process.env.VITE_HF_ENDPOINT = 'https://router.huggingface.co/proxy/v1/chat/completions';
+const proxied = await hfReply({ ...safe, token: '' });
+check('proxied endpoint needs no browser token', proxied.ok && /heavy/i.test(proxied.text), JSON.stringify(proxied.text));
+delete process.env.VITE_HF_ENDPOINT;
+
+failAllModels = true;
+const nothingServed = await hfReply({ ...safe, token: 'good-token', model: 'retired/model' });
+check(
+  'explains when no model is served',
+  nothingServed.kind === 'model' && /none of the known chat models/i.test(nothingServed.error ?? ''),
+  nothingServed.error ?? '',
+);
+failAllModels = false;
 
 const timeout = await hfReply({ ...safe, token: 'good-token', timeoutMs: 1 });
 check('times out instead of hanging', !timeout.ok, timeout.kind ?? 'unknown');

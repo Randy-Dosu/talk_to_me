@@ -43,6 +43,22 @@ guide for it.
    Enable the Speech-to-Text API first. Then set `VITE_TRANSCRIBE_URL` to the
    deployed function URL and redeploy the site.
 
+## Optional: keep the model token on the server
+
+The browser can talk to Hugging Face directly (token in session storage), or to
+the `chat` Cloud Function, which holds the token in a secret:
+
+```bash
+npx firebase-tools functions:secrets:set HF_TOKEN
+npx firebase-tools deploy --only functions:chat
+```
+
+Then set `VITE_HF_ENDPOINT` to that function's URL and redeploy the site. With a
+custom endpoint the client sends no `Authorization` header, Settings shows
+"handled by the proxy", and the function enforces a message-length cap and a
+256-token ceiling before calling the router. Add per-user quotas before opening
+it to the public.
+
 ## Local emulators
 
 ```bash

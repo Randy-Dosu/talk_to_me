@@ -16,7 +16,37 @@ import type { Analysis } from '../engine/types';
 export const HF_ENDPOINT = 'https://router.huggingface.co/v1/chat/completions';
 export const DEFAULT_HF_MODEL = 'HuggingFaceH4/zephyr-7b-beta';
 
+/**
+ * Chat models differ by account and by week: Hugging Face rotates what its
+ * Inference Providers serve. These are tried in order when a model id comes
+ * back as not served, so a stale default does not look like a broken feature.
+ */
+export const HF_MODEL_CANDIDATES = [
+  DEFAULT_HF_MODEL,
+  'Qwen/Qwen2.5-7B-Instruct',
+  'meta-llama/Llama-3.1-8B-Instruct',
+  'mistralai/Mistral-7B-Instruct-v0.3',
+];
+
 const TOKEN_KEY = 'nkommo.hf.token';
+
+function envValue(key: string): string {
+  const meta = import.meta as unknown as { env?: Record<string, string | undefined> };
+  const fromVite = meta.env?.[key];
+  if (fromVite) return String(fromVite).trim();
+  const proc = (globalThis as { process?: { env?: Record<string, string | undefined> } }).process;
+  return (proc?.env?.[key] ?? '').trim();
+}
+
+/** The configured endpoint; a self-hosted or Cloud Function proxy can be used instead. */
+export function hfEndpoint(): string {
+  return envValue('VITE_HF_ENDPOINT') || HF_ENDPOINT;
+}
+
+/** When the endpoint is not Hugging Face itself, the token can stay on the server. */
+export function usingProxy(): boolean {
+  return hfEndpoint() !== HF_ENDPOINT;
+}
 
 export function getHfToken(): string {
   try {
@@ -35,13 +65,15 @@ export function setHfToken(token: string): void {
   }
 }
 
-export type HfErrorKind = 'auth' | 'rate' | 'network' | 'timeout' | 'bad' | 'empty';
+export type HfErrorKind = 'auth' | 'rate' | 'network' | 'timeout' | 'bad' | 'empty' | 'model';
 
 export interface HfReply {
   ok: boolean;
   text: string;
   error?: string;
   kind?: HfErrorKind;
+  /** The model that actually answered, when a fallback was needed. */
+  model?: string;
 }
 
 const SYSTEM_PROMPT = [
@@ -80,25 +112,50 @@ export function sanitizeReply(raw: string): string | null {
   return text.length > 600 ? `${text.slice(0, 597).trimEnd()}…` : text;
 }
 
-export async function hfReply(options: {
-  text: string;
-  analysis: Analysis;
-  model: string;
-  token: string;
-  timeoutMs?: number;
-}): Promise<HfReply> {
-  const { text, analysis, model, token, timeoutMs = 25_000 } = options;
-  if (!token) return { ok: false, text: '', kind: 'auth', error: 'No Hugging Face token saved.' };
+/** Providers return text in several shapes; read all of the common ones. */
+export function extractText(payload: unknown): string {
+  const data = payload as {
+    choices?: { message?: { content?: unknown }; text?: unknown }[];
+    generated_text?: unknown;
+  };
+  const content = data?.choices?.[0]?.message?.content ?? data?.choices?.[0]?.text;
+  if (typeof content === 'string') return content;
+  if (Array.isArray(content)) {
+    return content
+      .map((part) => (typeof part === 'string' ? part : ((part as { text?: string })?.text ?? '')))
+      .join(' ')
+      .trim();
+  }
+  if (typeof data?.generated_text === 'string') return data.generated_text;
+  return '';
+}
 
+function errorFromBody(payload: unknown): string {
+  const data = payload as { error?: unknown; message?: unknown };
+  if (typeof data?.error === 'string') return data.error;
+  if (data?.error && typeof (data.error as { message?: unknown }).message === 'string') {
+    return (data.error as { message: string }).message;
+  }
+  if (typeof data?.message === 'string') return data.message;
+  return '';
+}
+
+const MODEL_PROBLEM = /model|provider|not supported|not found|no provider|unsupported/i;
+
+async function attempt(
+  endpoint: string,
+  options: { text: string; analysis: Analysis; model: string; token: string; timeoutMs: number },
+): Promise<HfReply> {
+  const { text, analysis, model, token, timeoutMs } = options;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const response = await fetch(HF_ENDPOINT, {
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+
+    const response = await fetch(endpoint, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
-      },
+      headers,
       body: JSON.stringify({
         model,
         messages: buildMessages(text, analysis),
@@ -108,35 +165,59 @@ export async function hfReply(options: {
       signal: controller.signal,
     });
 
+    const rawBody = await response.text();
+    let payload: unknown = null;
+    try {
+      payload = rawBody ? JSON.parse(rawBody) : null;
+    } catch {
+      payload = null;
+    }
+
     if (response.status === 401 || response.status === 403) {
-      return { ok: false, text: '', kind: 'auth', error: 'The token was rejected. Check it in Settings.' };
+      return {
+        ok: false,
+        text: '',
+        kind: 'auth',
+        error: token
+          ? 'The token was rejected. Check that it has the Inference Providers permission.'
+          : 'No token is saved, and this endpoint needs one.',
+      };
     }
     if (response.status === 429) {
       return { ok: false, text: '', kind: 'rate', error: 'The model is rate-limited right now.' };
     }
-    if (response.status === 404) {
+    if (response.status === 404 || (response.status === 400 && MODEL_PROBLEM.test(errorFromBody(payload)))) {
+      return {
+        ok: false,
+        text: '',
+        kind: 'model',
+        error: `This account does not serve ${model}.`,
+      };
+    }
+    if (!response.ok) {
+      const detail = errorFromBody(payload);
       return {
         ok: false,
         text: '',
         kind: 'bad',
-        error: 'That model id is not served by Hugging Face. Try another id in Settings.',
+        error: detail
+          ? `The model service returned ${response.status}: ${detail.slice(0, 120)}`
+          : `The model service returned ${response.status}.`,
       };
     }
-    if (!response.ok) {
-      return { ok: false, text: '', kind: 'bad', error: `The model service returned ${response.status}.` };
-    }
 
-    const data = (await response.json()) as {
-      choices?: { message?: { content?: string } }[];
-    };
-    const raw = data.choices?.[0]?.message?.content ?? '';
-    const clean = sanitizeReply(raw);
+    const clean = sanitizeReply(extractText(payload));
     if (!clean) {
-      return { ok: false, text: '', kind: 'empty', error: 'The model answered in a way we will not show (diagnosis or empty).' };
+      return {
+        ok: false,
+        text: '',
+        kind: 'empty',
+        error: 'The model answered in a way we will not show (diagnosis or empty).',
+      };
     }
-    return { ok: true, text: clean };
+    return { ok: true, text: clean, model };
   } catch (error) {
-    const aborted = error instanceof DOMException && error.name === 'AbortError';
+    const aborted = error instanceof Error && error.name === 'AbortError';
     return {
       ok: false,
       text: '',
@@ -146,6 +227,40 @@ export async function hfReply(options: {
   } finally {
     clearTimeout(timer);
   }
+}
+
+/**
+ * Tries the chosen model, then the known-good list when the id is not served.
+ * Auth, rate-limit, timeout and network failures stop immediately: retrying
+ * them would just burn quota.
+ */
+export async function hfReply(options: {
+  text: string;
+  analysis: Analysis;
+  model: string;
+  token: string;
+  timeoutMs?: number;
+}): Promise<HfReply> {
+  const { text, analysis, model, token, timeoutMs = 25_000 } = options;
+  const endpoint = hfEndpoint();
+  if (!token && !usingProxy()) {
+    return { ok: false, text: '', kind: 'auth', error: 'No Hugging Face token saved.' };
+  }
+
+  const candidates = [model, ...HF_MODEL_CANDIDATES.filter((candidate) => candidate !== model)];
+  let last: HfReply = { ok: false, text: '', kind: 'model', error: 'No model answered.' };
+
+  for (const candidate of candidates) {
+    const result = await attempt(endpoint, { text, analysis, model: candidate, token, timeoutMs });
+    if (result.ok) return { ...result, model: candidate };
+    last = result;
+    if (result.kind !== 'model') return result;
+  }
+
+  return {
+    ...last,
+    error: 'None of the known chat models are served on this account. Pick another model id in Settings.',
+  };
 }
 
 /**
@@ -163,33 +278,61 @@ export function maySendToModel(analysis: Analysis, text = ''): boolean {
 }
 
 /** Small round-trip used by the Settings page's "Test" button. */
-export async function testHfConnection(model: string, token: string): Promise<{ ok: boolean; error?: string }> {
-  if (!token) return { ok: false, error: 'Paste a Hugging Face access token first.' };
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), 20_000);
-  try {
-    const response = await fetch(HF_ENDPOINT, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        model,
-        messages: [{ role: 'user', content: 'Reply with the single word: ready' }],
-        max_tokens: 8,
-        temperature: 0,
-      }),
-      signal: controller.signal,
-    });
-    if (response.status === 401 || response.status === 403) return { ok: false, error: 'Token rejected (401/403).' };
-    if (response.status === 404) return { ok: false, error: 'Model not found on this account or endpoint.' };
-    if (response.status === 429) return { ok: false, error: 'Rate-limited (429). Try again shortly.' };
-    if (!response.ok) return { ok: false, error: `Service returned ${response.status}.` };
-    const data = (await response.json()) as { choices?: { message?: { content?: string } }[] };
-    return data.choices?.[0]?.message?.content
-      ? { ok: true }
-      : { ok: false, error: 'Reached the service, but no text came back.' };
-  } catch {
-    return { ok: false, error: 'No connection from this browser (this preview sandbox may block it).' };
-  } finally {
-    clearTimeout(timer);
+export async function testHfConnection(
+  model: string,
+  token: string,
+): Promise<{ ok: boolean; model?: string; error?: string }> {
+  if (!token && !usingProxy()) return { ok: false, error: 'Paste a Hugging Face access token first.' };
+
+  const endpoint = hfEndpoint();
+  const candidates = [model, ...HF_MODEL_CANDIDATES.filter((candidate) => candidate !== model)];
+  let lastError = 'No connection from this browser (this preview sandbox may block it).';
+
+  for (const candidate of candidates) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 20_000);
+    try {
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers.Authorization = `Bearer ${token}`;
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({
+          model: candidate,
+          messages: [{ role: 'user', content: 'Reply with the single word: ready' }],
+          max_tokens: 8,
+          temperature: 0,
+        }),
+        signal: controller.signal,
+      });
+      const rawBody = await response.text();
+      let payload: unknown = null;
+      try {
+        payload = rawBody ? JSON.parse(rawBody) : null;
+      } catch {
+        payload = null;
+      }
+
+      if (response.status === 401 || response.status === 403) {
+        return { ok: false, error: token ? 'Token rejected (401/403).' : 'This endpoint needs a token.' };
+      }
+      if (response.status === 429) return { ok: false, error: 'Rate-limited (429). Try again shortly.' };
+      if (response.status === 404 || (response.status === 400 && MODEL_PROBLEM.test(errorFromBody(payload)))) {
+        lastError = `${candidate} is not served on this account.`;
+        continue;
+      }
+      if (!response.ok) {
+        const detail = errorFromBody(payload);
+        return { ok: false, error: detail ? `Service returned ${response.status}: ${detail.slice(0, 100)}` : `Service returned ${response.status}.` };
+      }
+      if (extractText(payload)) return { ok: true, model: candidate };
+      return { ok: false, error: 'Reached the service, but no text came back.' };
+    } catch {
+      return { ok: false, error: 'No connection from this browser (this preview sandbox may block it).' };
+    } finally {
+      clearTimeout(timer);
+    }
   }
+
+  return { ok: false, error: `${lastError} Try another model id.` };
 }
