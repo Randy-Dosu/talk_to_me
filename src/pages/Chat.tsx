@@ -11,7 +11,6 @@ import {
   Settings2,
   Sparkles,
   Trash2,
-  X,
 } from 'lucide-react';
 import CrisisCard from '../components/CrisisCard';
 import DayPrompter from '../components/DayPrompter';
@@ -22,7 +21,7 @@ import { MoodBadge } from '../components/ui';
 import { useStore, useSortedEntries } from '../data/store';
 import { getHfToken, hfReply, maySendToModel } from '../lib/hfChat';
 import { dayKey, formatDay, formatTime } from '../engine/id';
-import { daySeed, openerFor, pickStarters, stateFromEntries } from '../data/prompts';
+import { daySeed, openerFor } from '../data/prompts';
 import { dismiss, isDismissed, periodLabel, periodOfDay, promptWindow } from '../lib/dayPrompter';
 import { useNotificationPermission } from '../lib/useReminders';
 import { bandChip } from '../lib/tone';
@@ -72,17 +71,10 @@ export default function Chat() {
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<string, ReplyState>>({});
   const [promptDismissed, setPromptDismissed] = useState(false);
-  /** The starter being answered — shown above the composer, never typed for them. */
-  const [asking, setAsking] = useState<string | null>(null);
   const now = new Date();
   const hour = now.getHours();
   const slotPrompt = promptWindow(now);
   const promptKind = slotPrompt ?? (hour < 17 ? 'morning' : 'evening');
-  const starterState = stateFromEntries(entries);
-  const starters = useMemo(
-    () => pickStarters(promptKind, starterState, daySeed(now)),
-    [promptKind, starterState, now.getDate()],
-  );
   const reminders = useNotificationPermission();
   const showPrompter = Boolean(slotPrompt) && state.settings.remindersEnabled && !promptDismissed && !isDismissed(promptKind, now);
   const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -122,7 +114,6 @@ export default function Chat() {
     setText('');
     setUsedVoice(false);
     setFilter(null);
-    setAsking(null);
     inputRef.current?.focus();
 
     const token = getHfToken();
@@ -216,7 +207,6 @@ export default function Chat() {
                 <h1 className="font-display text-[1.2rem] leading-tight text-ink">
                   {periodLabel(periodOfDay(now))}, {name}
                 </h1>
-                <p className="text-[0.7rem] text-ink-muted">on this device · read here · never sent</p>
               </div>
               {days.length > 1 && (
                 <select
@@ -239,16 +229,11 @@ export default function Chat() {
               <div className="pt-4">
                 <DayPrompter
                   kind={slotPrompt}
-                  state={starterState}
-                  starters={starters}
                   permission={reminders.permission}
                   onEnableNotifications={() => {
                     void reminders.requestPermission();
                   }}
-                  onUse={(question) => {
-                    setAsking(question);
-                    inputRef.current?.focus();
-                  }}
+                  onStart={() => inputRef.current?.focus()}
                   onDismiss={() => {
                     dismiss(slotPrompt, now);
                     setPromptDismissed(true);
@@ -264,30 +249,9 @@ export default function Chat() {
                     <Mark size={26} />
                     <div className="rounded-2xl rounded-tl-md bg-white/70 px-4 py-3">
                       {!showPrompter && (
-                        <p className="text-[0.95rem] leading-relaxed text-ink">
-                          {openerFor(promptKind, starterState, daySeed(now))}
-                        </p>
+                        <p className="text-[0.95rem] leading-relaxed text-ink">{openerFor(promptKind, daySeed(now))}</p>
                       )}
-                      <p className={`${showPrompter ? '' : 'mt-1 '}text-[0.72rem] text-ink-muted`}>
-                        Speak it or write it. Nothing here leaves your device.
-                      </p>
                     </div>
-                  </div>
-                  <div className="mt-3 flex flex-wrap gap-2 pl-10">
-                    {!showPrompter && starters.map((starter) => (
-                      <button
-                        key={starter.id}
-                        type="button"
-                        onClick={() => {
-                          setAsking(starter.text);
-                          inputRef.current?.focus();
-                        }}
-                        title={starter.mechanism}
-                        className="rounded-full border border-line bg-white/60 px-3 py-1.5 text-[0.78rem] text-ink-soft hover:border-sage/40 hover:text-forest"
-                      >
-                        {starter.text}
-                      </button>
-                    ))}
                   </div>
                 </div>
               )}
@@ -469,22 +433,6 @@ export default function Chat() {
 
             {/* -------- composer -------- */}
             <div className="sticky bottom-16 z-20 pb-2 lg:bottom-0">
-              {asking && (
-                <div
-                  className="mb-1.5 flex items-start justify-between gap-3 rounded-xl border border-line/80 bg-white/70 px-3 py-2"
-                  aria-label="Starter question"
-                >
-                  <p className="text-[0.8rem] leading-snug text-ink-soft">{asking}</p>
-                  <button
-                    type="button"
-                    onClick={() => setAsking(null)}
-                    className="shrink-0 rounded-full p-1 text-ink-muted hover:bg-ink/5 hover:text-ink"
-                    aria-label="Clear starter question"
-                  >
-                    <X size={12} />
-                  </button>
-                </div>
-              )}
               <div className="rounded-2xl border border-line bg-paper/95 p-2 shadow-[0_-8px_24px_-24px_rgba(22,33,29,0.5)] backdrop-blur">
                 <label htmlFor="entry" className="sr-only">
                   Write your entry

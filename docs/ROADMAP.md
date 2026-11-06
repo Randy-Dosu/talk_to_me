@@ -242,25 +242,25 @@ What production still needs:
 
 ---
 
-## Stage 7.6 — Morning/evening prompter and psychological starters (built)
+## Stage 7.6 — Morning/evening prompter (built)
 
 | Piece | State |
 | --- | --- |
-| `src/data/prompts.ts` — 8 morning + 8 evening starters, 6 state pools, mechanism tags | ✅ tested |
+| `src/data/prompts.ts` — one short question per window, three variants each, date-seeded | ✅ tested |
 | `src/lib/dayPrompter.ts` — windows, once-per-day dismissal, next-slot maths, clock formatting | ✅ tested |
 | `src/lib/useReminders.ts` — opt-in Notification scheduler + permission hook | ✅ tested with jsdom |
 | `DayPrompter` card in the chat at the top of each window | ✅ |
-| Greeting replaced: no Akwaaba/Maakye/Maaha/Maadwo, a starter question instead | ✅ tested |
+| Greeting replaced: no Akwaaba/Maakye/Maaha/Maadwo, one question instead | ✅ tested |
 | `/settings` — toggle, both times, notification permission with copy about the tab limit | ✅ tested |
 
 Prompt design rules:
 
-- Questions only. No suggested answers, no advice, no diagnoses. Tapping a starter
-  shows the question and leaves the composer empty.
-- Two time-based starters + one chosen from the last three entries' state.
+- Questions only. No suggestions, no suggested answers, no advice, no diagnoses.
+  The card offers only Write and dismiss; the composer is never filled in.
+- One question per window, picked by date.
 - Dismissal keyed by date + window; one prompt per window per day.
 - The notification body is a question; no journal content leaves the page.
 
 Production still needs: a service worker + push subscription if reminders must survive a closed tab, and
-localisation of the starter bank into Twi, Ga and Ewe with community review.
+localisation of the question bank into Twi, Ga and Ewe with community review.
 

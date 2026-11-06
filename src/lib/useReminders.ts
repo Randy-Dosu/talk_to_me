@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import type { Settings } from '../engine/types';
-import { EVENING_STARTERS, MORNING_STARTERS, daySeed } from '../data/prompts';
+import { daySeed, openerFor } from '../data/prompts';
 import { nextSlot } from './dayPrompter';
 
 type Permission = 'unsupported' | 'default' | 'granted' | 'denied';
@@ -63,8 +63,7 @@ export function useReminderScheduler(settings: Settings) {
     const timer = window.setTimeout(() => {
       setTick((value) => value + 1);
       try {
-        const pool = slot.kind === 'morning' ? MORNING_STARTERS : EVENING_STARTERS;
-        const question = pool[daySeed(new Date()) % pool.length].text;
+        const question = openerFor(slot.kind, daySeed(new Date()));
         new Notification(slot.kind === 'morning' ? 'Nkommo · plan the day' : 'Nkommo · close the day', {
           body: question,
           tag: `nkommo-${slot.kind}`,

@@ -19,7 +19,7 @@ serving this demo.
 | Landing page with a live reading of what you type — nothing preloaded | ✅ working |
 | No seed entries, demo personas or sample data anywhere in the build | ✅ verified by test |
 | Chat-style journal: one screen, local-only storage, delete/edit | ✅ working |
-| Morning/evening prompter: questions only, never a suggested answer, once per window | ✅ working + unit tested |
+| Morning/evening prompter: one short question, no suggestion chips, once per window | ✅ working + unit tested |
 | Web Notification reminder while the tab is open (no push service) | ⚠️ opt-in, browser-dependent |
 | One-page signup: alias, language, trusted contact, acknowledgement | ✅ working |
 | Voice journalling: full-screen capture sheet → speech-to-text → editable entry | ✅ working (browser-dependent) |
@@ -53,7 +53,7 @@ Other scripts:
 
 ```bash
 npm run build      # typecheck + production build
-npm test           # 101 tests: engine, geo ranking, HF adapter, prompts/prompter, chat flows, route smoke
+npm test           # 97 tests: engine, geo ranking, HF adapter, prompts/prompter, chat flows, route smoke
 npm run eval       # regenerates src/engine/eval/report.json (the model card numbers)
 npm run typecheck
 ```
@@ -70,7 +70,7 @@ skip signup. The app starts empty: there is no seed corpus, demo persona or prel
 - **Tailwind CSS v4** — design tokens in `src/index.css` (warm paper, forest, clay, gold; Fraunces + Inter).
 - **Recharts** — mood trend chart.
 - **Custom engine in `src/engine`** — no runtime model download, no network, deterministic and explainable.
-- **Vitest + Testing Library + jsdom** — 101 tests including the signup, chat, voice, location-ranking, HF-adapter, prompter-scheduling and safety flows.
+- **Vitest + Testing Library + jsdom** — 97 tests including the signup, chat, voice, location-ranking, HF-adapter, prompter-scheduling and safety flows.
 - **Python reference path in `ml/`** — FastAPI service and a RoBERTa/GoEmotions fine-tuning script for the production
   model, kept separate so it never pretends to be what the demo runs.
 

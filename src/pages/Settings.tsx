@@ -53,7 +53,7 @@ export default function Settings() {
           <h2 className="font-display text-[1.2rem] text-ink">Daily prompts</h2>
         </div>
         <p className="mb-3 max-w-xl text-[0.84rem] leading-relaxed text-ink-muted">
-          One question in the morning, one at night. Psychological starters, not pep talks.
+          One question in the morning, one at night.
         </p>
 
         <div className="card p-5">
@@ -61,7 +61,7 @@ export default function Settings() {
             <span>
               <span className="block text-[0.86rem] font-medium text-ink">Show the prompter</span>
               <span className="mt-0.5 block text-[0.76rem] leading-snug text-ink-muted">
-                An in-app card at the top of the chat during the morning and evening windows.
+                Shows at the top of the chat, morning and evening.
               </span>
             </span>
             <input
@@ -122,8 +122,7 @@ export default function Settings() {
           </div>
 
           <p className="mt-3 text-[0.7rem] leading-relaxed text-ink-muted">
-            No push service, no account — fires only while this tab is open. The notification is a question, never your
-            entries. If blocked, the card still shows in the chat.
+            Fires only while this tab is open. The notification is a question, never your entries.
           </p>
         </div>
       </section>
