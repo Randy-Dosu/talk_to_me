@@ -178,7 +178,9 @@ export interface Settings {
   /** Chosen greeting tone: Twi/English mix by default. */
   language: 'en' | 'tw-en';
   remindersEnabled: boolean;
-  reminderTime: string;
+  /** HH:MM, local time. Morning = plan the day, evening = close it. */
+  morningTime: string;
+  eveningTime: string;
   trusted: TrustedContact | null;
   /** Whether the crisis card may be shown proactively on the dashboard. */
   showResourcesOnOpen: boolean;

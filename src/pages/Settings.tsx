@@ -1,13 +1,16 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { BrainCircuit, Check, KeyRound, Lock, MapPin, ShieldAlert, X } from 'lucide-react';
+import { Bell, BrainCircuit, Check, KeyRound, Lock, MapPin, ShieldAlert, Sunrise, Sunset, X } from 'lucide-react';
 import NearestHelp from '../components/NearestHelp';
 import { SectionHeading } from '../components/ui';
 import { useStore } from '../data/store';
 import { DEFAULT_HF_MODEL, getHfToken, setHfToken, testHfConnection } from '../lib/hfChat';
+import { formatClock } from '../lib/dayPrompter';
+import { useNotificationPermission } from '../lib/useReminders';
 
 export default function Settings() {
   const { state, updateSettings } = useStore();
+  const notifications = useNotificationPermission();
   const [model, setModel] = useState(state.settings.ai.model || DEFAULT_HF_MODEL);
   const [token, setToken] = useState(getHfToken());
   const [consent, setConsent] = useState(state.settings.ai.enabled);
@@ -39,6 +42,88 @@ export default function Settings() {
         title="Two optional things."
         blurb="Neither is needed to use the journal. Both stay on this device unless you turn them on."
       />
+
+      {/* ---------- daily prompts ---------- */}
+      <section className="mt-8">
+        <div className="mb-2 flex items-center gap-2">
+          <Sunrise size={15} className="text-forest" />
+          <h2 className="font-display text-[1.2rem] text-ink">Daily prompts</h2>
+        </div>
+        <p className="mb-3 max-w-xl text-[0.84rem] leading-relaxed text-ink-muted">
+          One question in the morning, one at night. Psychological starters, not pep talks.
+        </p>
+
+        <div className="card p-5">
+          <label className="flex cursor-pointer items-start justify-between gap-4">
+            <span>
+              <span className="block text-[0.86rem] font-medium text-ink">Show the prompter</span>
+              <span className="mt-0.5 block text-[0.76rem] leading-snug text-ink-muted">
+                An in-app card at the top of the chat during the morning and evening windows.
+              </span>
+            </span>
+            <input
+              type="checkbox"
+              role="switch"
+              aria-checked={state.settings.remindersEnabled}
+              aria-label="Show the prompter"
+              checked={state.settings.remindersEnabled}
+              onChange={(event) => updateSettings({ remindersEnabled: event.target.checked })}
+              className="mt-1 h-5 w-5 accent-forest"
+            />
+          </label>
+
+          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+            <label className="block">
+              <span className="flex items-center gap-1.5 text-[0.78rem] font-medium text-ink">
+                <Sunrise size={12} className="text-[#8a6414]" /> Morning plan
+              </span>
+              <input
+                type="time"
+                value={state.settings.morningTime}
+                onChange={(event) => updateSettings({ morningTime: event.target.value })}
+                className="field mt-1.5 w-full text-[0.84rem]"
+              />
+            </label>
+            <label className="block">
+              <span className="flex items-center gap-1.5 text-[0.78rem] font-medium text-ink">
+                <Sunset size={12} className="text-forest" /> Evening check-in
+              </span>
+              <input
+                type="time"
+                value={state.settings.eveningTime}
+                onChange={(event) => updateSettings({ eveningTime: event.target.value })}
+                className="field mt-1.5 w-full text-[0.84rem]"
+              />
+            </label>
+          </div>
+
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              onClick={() => void notifications.requestPermission()}
+              disabled={!notifications.supported || notifications.permission === 'granted'}
+              className="btn btn-ghost px-3 py-2 text-[0.8rem]"
+            >
+              <Bell size={13} />
+              {notifications.permission === 'granted'
+                ? 'Notifications on'
+                : notifications.permission === 'denied'
+                  ? 'Notifications blocked'
+                  : notifications.permission === 'unsupported'
+                    ? 'Notifications unavailable'
+                    : 'Turn on notifications'}
+            </button>
+            <span className="text-[0.7rem] leading-snug text-ink-muted">
+              {formatClock(state.settings.morningTime)} · {formatClock(state.settings.eveningTime)}, local time
+            </span>
+          </div>
+
+          <p className="mt-3 text-[0.7rem] leading-relaxed text-ink-muted">
+            No push service, no account — fires only while this tab is open. The notification is a question, never your
+            entries. If blocked, the card still shows in the chat.
+          </p>
+        </div>
+      </section>
 
       {/* ---------- location ---------- */}
       <section className="mt-8">

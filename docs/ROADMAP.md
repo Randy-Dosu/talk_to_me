@@ -224,7 +224,7 @@ They are not wired into the demo.
 | --- | --- |
 | `src/data/facilities.ts` — 17 service points, 16 regions, coordinates + verified phones only | ✅ |
 | `src/lib/geo.ts` — haversine, ranking, region fallback, human-readable distance | ✅ tested |
-| `src/lib/useLocation.ts` — permission states: denied, unavailable, timeout, ready | ✅ tested |
+| `src/lib/useGeoLocation.ts` — permission states: denied, unavailable, timeout, ready | ✅ tested |
 | `NearestHelp` in the crisis card and on `/safety` | ✅ |
 | `src/lib/hfChat.ts` — chat-completions adapter, local-only gate, reply sanitiser | ✅ tested with a mocked endpoint |
 | `/settings` — consent-gated token, model id, test connection, forget token | ✅ |
@@ -238,3 +238,27 @@ What production still needs:
 3. **A server-side proxy for model calls** if this ever ships to users: a token in the browser is a hobby-project
    pattern, not a product one. The proxy must also strip identifiers and enforce the crisis block server-side.
 4. **Cost and abuse controls** (per-user quotas) before enabling a paid endpoint for the public.
+
+---
+
+## Stage 7.6 — Morning/evening prompter and psychological starters (built)
+
+| Piece | State |
+| --- | --- |
+| `src/data/prompts.ts` — 8 morning + 8 evening starters, 6 state pools, mechanism tags | ✅ tested |
+| `src/lib/dayPrompter.ts` — windows, once-per-day dismissal, next-slot maths, clock formatting | ✅ tested |
+| `src/lib/useReminders.ts` — opt-in Notification scheduler + permission hook | ✅ tested with jsdom |
+| `DayPrompter` card in the chat at the top of each window | ✅ |
+| Greeting replaced: no Akwaaba/Maakye/Maaha/Maadwo, a starter question instead | ✅ tested |
+| `/settings` — toggle, both times, notification permission with copy about the tab limit | ✅ tested |
+
+Prompt design rules:
+
+- Questions only. No suggested answers, no advice, no diagnoses.
+- Two time-based starters + one chosen from the last three entries' state.
+- Dismissal keyed by date + window; one prompt per window per day.
+- The notification body is a question; no journal content leaves the page.
+
+Production still needs: a service worker + push subscription if reminders must survive a closed tab, and
+localisation of the starter bank into Twi, Ga and Ewe with community review.
+

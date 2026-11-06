@@ -4,6 +4,7 @@ import clsx from 'clsx';
 import { Activity, HeartHandshake, LifeBuoy, Menu, MessageCircle, Phone, ShieldCheck, X } from 'lucide-react';
 import { Wordmark } from './Logo';
 import { useStore } from '../data/store';
+import { useReminderScheduler } from '../lib/useReminders';
 import { RESOURCES } from '../data/resources';
 
 const NAV = [
@@ -19,6 +20,7 @@ const TABS = NAV.slice(0, 4);
 export default function Layout() {
   const [open, setOpen] = useState(false);
   const { state, clearDemo } = useStore();
+  useReminderScheduler(state.settings);
   const location = useLocation();
   const isLanding = location.pathname === '/';
   const isChat = ['/journal', '/chat', '/signup'].includes(location.pathname);

@@ -32,13 +32,6 @@ export function daysBetween(a: Date | string, b: Date | string): number {
   return Math.round(ms / 86_400_000);
 }
 
-export function greeting(date = new Date()): string {
-  const h = date.getHours();
-  if (h < 12) return 'Maakye';
-  if (h < 17) return 'Maaha';
-  return 'Maadwo';
-}
-
 export function formatDay(date: Date | string, opts: Intl.DateTimeFormatOptions = { day: 'numeric', month: 'short' }): string {
   return new Intl.DateTimeFormat('en-GB', opts).format(new Date(date));
 }
@@ -47,4 +40,4 @@ export function formatTime(date: Date | string): string {
   return new Intl.DateTimeFormat('en-GB', { hour: '2-digit', minute: '2-digit' }).format(new Date(date));
 }
 
-export default { id, dayKey, startOfDay, addDays, daysBetween, greeting, formatDay, formatTime };
+export default { id, dayKey, startOfDay, addDays, daysBetween, formatDay, formatTime };

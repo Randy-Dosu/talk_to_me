@@ -13,13 +13,17 @@ import {
   Trash2,
 } from 'lucide-react';
 import CrisisCard from '../components/CrisisCard';
+import DayPrompter from '../components/DayPrompter';
 import AnalysisPanel from '../components/AnalysisPanel';
 import VoiceSheet from '../components/VoiceSheet';
 import { Mark } from '../components/Logo';
 import { MoodBadge } from '../components/ui';
 import { useStore, useSortedEntries } from '../data/store';
 import { getHfToken, hfReply, maySendToModel } from '../lib/hfChat';
-import { dayKey, formatDay, formatTime, greeting } from '../engine/id';
+import { dayKey, formatDay, formatTime } from '../engine/id';
+import { daySeed, openerFor, pickStarters, stateFromEntries } from '../data/prompts';
+import { dismiss, isDismissed, periodLabel, periodOfDay, promptWindow } from '../lib/dayPrompter';
+import { useNotificationPermission } from '../lib/useReminders';
 import { bandChip } from '../lib/tone';
 import type { JournalEntry, MoodBand } from '../engine/types';
 
@@ -66,6 +70,18 @@ export default function Chat() {
   const [correcting, setCorrecting] = useState<string | null>(null);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<string, ReplyState>>({});
+  const [promptDismissed, setPromptDismissed] = useState(false);
+  const now = new Date();
+  const hour = now.getHours();
+  const slotPrompt = promptWindow(now);
+  const promptKind = slotPrompt ?? (hour < 17 ? 'morning' : 'evening');
+  const starterState = stateFromEntries(entries);
+  const starters = useMemo(
+    () => pickStarters(promptKind, starterState, daySeed(now)),
+    [promptKind, starterState, now.getDate()],
+  );
+  const reminders = useNotificationPermission();
+  const showPrompter = Boolean(slotPrompt) && state.settings.remindersEnabled && !promptDismissed && !isDismissed(promptKind, now);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const endRef = useRef<HTMLDivElement>(null);
 
@@ -194,7 +210,7 @@ export default function Chat() {
             <header className="flex flex-wrap items-center justify-between gap-2 border-b border-line/70 pb-2.5">
               <div>
                 <h1 className="font-display text-[1.2rem] leading-tight text-ink">
-                  {greeting()}, {name}
+                  {periodLabel(periodOfDay(now))}, {name}
                 </h1>
                 <p className="text-[0.7rem] text-ink-muted">on this device · read here · never sent</p>
               </div>
@@ -215,31 +231,57 @@ export default function Chat() {
               )}
             </header>
 
+            {showPrompter && slotPrompt && (
+              <div className="pt-4">
+                <DayPrompter
+                  kind={slotPrompt}
+                  state={starterState}
+                  starters={starters}
+                  permission={reminders.permission}
+                  onEnableNotifications={() => {
+                    void reminders.requestPermission();
+                  }}
+                  onUse={(text) => {
+                    setText(`${text} `);
+                    inputRef.current?.focus();
+                  }}
+                  onDismiss={() => {
+                    dismiss(slotPrompt, now);
+                    setPromptDismissed(true);
+                  }}
+                />
+              </div>
+            )}
+
             <div role="log" aria-live="polite" aria-label="Conversation" className="flex-1 space-y-6 py-5">
               {visible.length === 0 && (
                 <div className="max-w-lg">
                   <div className="flex items-start gap-3">
                     <Mark size={26} />
                     <div className="rounded-2xl rounded-tl-md bg-white/70 px-4 py-3">
-                      <p className="text-[0.92rem] leading-relaxed text-ink">
-                        {state.settings.language === 'tw-en'
-                          ? 'Akwaaba. How is your heart today? Speak it or write it — nothing here leaves your phone.'
-                          : 'Akwaaba. How is today? Speak it or write it — nothing here leaves your device.'}
+                      {!showPrompter && (
+                        <p className="text-[0.95rem] leading-relaxed text-ink">
+                          {openerFor(promptKind, starterState, daySeed(now))}
+                        </p>
+                      )}
+                      <p className={`${showPrompter ? '' : 'mt-1 '}text-[0.72rem] text-ink-muted`}>
+                        Speak it or write it. Nothing here leaves your device.
                       </p>
                     </div>
                   </div>
                   <div className="mt-3 flex flex-wrap gap-2 pl-10">
-                    {['Heavy day.', 'I am fine, just tired.', 'Something good happened.'].map((prompt) => (
+                    {!showPrompter && starters.map((starter) => (
                       <button
-                        key={prompt}
+                        key={starter.id}
                         type="button"
                         onClick={() => {
-                          setText(prompt);
+                          setText(`${starter.text} `);
                           inputRef.current?.focus();
                         }}
+                        title={starter.mechanism}
                         className="rounded-full border border-line bg-white/60 px-3 py-1.5 text-[0.78rem] text-ink-soft hover:border-sage/40 hover:text-forest"
                       >
-                        {prompt}
+                        {starter.text}
                       </button>
                     ))}
                   </div>
