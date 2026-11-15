@@ -22,7 +22,10 @@
     "noFallthroughCasesInSwitch": true,
     "types": [
       "vite/client"
-    ]
+    ],
+    "paths": {
+      "@shared/*": ["./src/*"]
+    }
   },
   "include": [
     "src"

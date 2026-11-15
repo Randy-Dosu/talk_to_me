@@ -13,7 +13,10 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "bench": "tsx src/engine/eval/bench.ts",
-    "hf:smoke": "tsx scripts/hf-smoke.ts"
+    "hf:smoke": "tsx scripts/hf-smoke.ts",
+    "mobile:start": "npm --prefix mobile start",
+    "mobile:web": "npm --prefix mobile run web -- --port 8081 --host lan",
+    "mobile:typecheck": "npm --prefix mobile run typecheck"
   },
   "dependencies": {
     "@fontsource-variable/fraunces": "5.3.0",

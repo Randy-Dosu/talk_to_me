@@ -37,6 +37,7 @@ serving this demo.
 | Privacy page: export, erase, shared-phone threat model | ✅ working |
 | Optional Firebase backend: email sign-in, Firestore backup/restore, owner-only rules | ✅ scaffolded + unit tested; needs a project |
 | Reference Cloud Function for server-side transcription | ✅ code + deploy notes; not deployed here |
+| Native Android & iOS mobile app (`mobile/`, Expo / React Native) sharing `src/engine` | ✅ working + bundled for Android, iOS & web |
 | Real alert delivery, transformer inference in the app | ⛔ deliberately not built |
 
 Nothing is mocked: the numbers on the model card come from `npm run eval`, and the charts come from the same engine that
@@ -48,7 +49,14 @@ runs when a person writes.
 
 ```bash
 npm install
-npm run dev        # http://localhost:3000
+npm run dev        # Web app -> http://localhost:3000
+```
+
+Mobile app (`mobile/`, Android & iOS via Expo / React Native):
+
+```bash
+cd mobile && npm install
+npm start          # Scan QR in Expo Go on Android/iOS, or `npm run web`
 ```
 
 Other scripts:
