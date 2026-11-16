@@ -1,0 +1,72 @@
+{
+  "expo": {
+    "name": "Nkommo",
+    "slug": "nkommo",
+    "version": "1.0.0",
+    "scheme": "nkommo",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#FBF7F0",
+    "primaryColor": "#1F4B3F",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#FBF7F0"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "gh.nkommo.app",
+      "infoPlist": {
+        "NSMicrophoneUsageDescription": "Nkommo uses the microphone only when you tap Speak to record a voice journal entry.",
+        "NSLocationWhenInUseUsageDescription": "Nkommo reads your approximate position on-device to rank nearby mental-health clinics in Ghana. Your coordinates never leave your phone."
+      }
+    },
+    "android": {
+      "package": "gh.nkommo.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#FBF7F0",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "permissions": [
+        "RECORD_AUDIO",
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "POST_NOTIFICATIONS"
+      ],
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "bundler": "metro",
+      "name": "Nkommo Mobile",
+      "shortName": "Nkommo",
+      "themeColor": "#1F4B3F",
+      "backgroundColor": "#FBF7F0"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Nkommo uses your approximate location on-device to rank nearby mental-health clinics in Ghana. Coordinates are never uploaded."
+        }
+      ],
+      [
+        "expo-audio",
+        {
+          "microphonePermission": "Nkommo uses the microphone only when you tap Speak to dictate a journal entry."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#1F4B3F"
+        }
+      ],
+      "expo-secure-store"
+    ]
+  }
+}

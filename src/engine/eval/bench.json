@@ -1,0 +1,29 @@
+{
+  "generatedAt": "2026-11-06T00:30:36.256Z",
+  "corpus": 82,
+  "analysis": {
+    "label": "analyse() per entry",
+    "iterations": 2000,
+    "totalMs": 839.9,
+    "opsPerSecond": 2381,
+    "meanMs": 0.42,
+    "p50Ms": 0.395,
+    "p95Ms": 0.617,
+    "maxMs": 1.789
+  },
+  "questions": {
+    "label": "questionFor() per prompt",
+    "iterations": 20000,
+    "totalMs": 63,
+    "opsPerSecond": 317459,
+    "meanMs": 0.003,
+    "p50Ms": 0.002,
+    "p95Ms": 0.007,
+    "maxMs": 0.563
+  },
+  "distinctQuestions": 16,
+  "bundle": {
+    "files": 18,
+    "bytes": 2030224
+  }
+}

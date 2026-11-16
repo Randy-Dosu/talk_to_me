@@ -1,0 +1,27 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@shared/*": ["../src/*"]
+    }
+  },
+  "include": [
+    "**/*.ts",
+    "**/*.tsx",
+    "../src/engine/analyze.ts",
+    "../src/engine/checkins.ts",
+    "../src/engine/id.ts",
+    "../src/engine/lexicon.ts",
+    "../src/engine/normalize.ts",
+    "../src/engine/trends.ts",
+    "../src/engine/types.ts",
+    "../src/data/citations.ts",
+    "../src/data/facilities.ts",
+    "../src/data/prompts.ts",
+    "../src/data/resources.ts",
+    "../src/lib/geo.ts",
+    "../src/lib/cloudModel.ts",
+    "../src/lib/tone.ts"
+  ]
+}
