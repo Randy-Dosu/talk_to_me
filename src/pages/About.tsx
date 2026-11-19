@@ -1,12 +1,12 @@
 import { Link } from 'react-router-dom';
-import { ArrowRight, Compass, HeartHandshake, PenLine, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Compass, HeartHandshake, LifeBuoy, LockKeyhole, PenLine, ShieldCheck, UserRound } from 'lucide-react';
 import { SectionHeading } from '../components/ui';
 
 const PRINCIPLES = [
   {
     icon: ShieldCheck,
     title: 'Privacy is the intervention',
-    body: 'In a place where being seen as “mad” can cost a person their reputation, a public tool is a barrier. So the listening happens on the device, with no account to leak and no server to subpoena.',
+    body: 'In a place where being seen as “mad” can cost a person their reputation, privacy matters. No account is needed, and writing stays on this device unless you opt into cloud backup in Settings.',
   },
   {
     icon: PenLine,
@@ -21,7 +21,7 @@ const PRINCIPLES = [
   {
     icon: Compass,
     title: 'Say what you cannot do',
-    body: 'No diagnosis, no emergency response, no Twi support yet, no guarantee that “no signal” means safe. Stating limits is not marketing weakness; it is the condition of being trusted with a journal.',
+    body: 'No diagnosis or emergency response, and mixed-language entries may not always be understood reliably. No signal is not a guarantee of safety. Stating limits is the condition of being trusted with a journal.',
   },
 ];
 
@@ -70,6 +70,53 @@ export default function About() {
         />
       </div>
 
+      <section className="mt-9" aria-labelledby="more-to-explore">
+        <p className="eyebrow">When you’re ready</p>
+        <h2 id="more-to-explore" className="mt-2 font-display text-[1.65rem] text-ink">
+          The rest is here when you need it.
+        </h2>
+        <p className="mt-2 max-w-2xl text-[0.86rem] leading-relaxed text-ink-muted">
+          Signup only asks for your name and language. These optional tools can be explored at your own pace.
+        </p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          {[
+            {
+              to: '/safety',
+              icon: LifeBuoy,
+              title: 'Find support',
+              body: 'Helplines, nearby care, and a safety plan.',
+            },
+            {
+              to: '/trusted',
+              icon: UserRound,
+              title: 'Choose a trusted person',
+              body: 'Set up an optional check-in with someone you trust.',
+            },
+            {
+              to: '/privacy',
+              icon: LockKeyhole,
+              title: 'Understand your privacy',
+              body: 'See what stays on your device and what backup means.',
+            },
+          ].map((item) => (
+            <Link
+              key={item.to}
+              to={item.to}
+              className="group rounded-2xl border border-line bg-white/55 p-4 transition-colors hover:border-sage/50 hover:bg-white"
+            >
+              <span className="flex h-9 w-9 items-center justify-center rounded-full bg-forest/8 text-forest">
+                <item.icon size={16} />
+              </span>
+              <h3 className="mt-3 font-display text-[1.05rem] text-ink">{item.title}</h3>
+              <p className="mt-1 text-[0.77rem] leading-relaxed text-ink-muted">{item.body}</p>
+              <span className="mt-3 inline-flex items-center gap-1 text-[0.74rem] font-medium text-forest">
+                Explore <ArrowRight size={13} className="transition-transform group-hover:translate-x-0.5" />
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
       <div className="mt-8 rounded-3xl border border-line bg-white/55 p-5">
         <p className="eyebrow">Build notes</p>
         <dl className="mt-3 grid gap-3 text-[0.83rem] sm:grid-cols-2">
@@ -77,7 +124,7 @@ export default function About() {
             ['Stack', 'React 19 · TypeScript · Vite · Tailwind v4 · Recharts'],
             ['Engine', 'Deterministic TypeScript rules, no runtime model download'],
             ['Reference backend', 'FastAPI + Hugging Face training scripts in /ml (not serving this demo)'],
-            ['Storage', 'Browser localStorage; no backend, no auth, no analytics'],
+            ['Storage', 'Browser localStorage by default; optional cloud backup; no analytics'],
             ['Instruments', 'PHQ-9 and GAD-7 (public domain), item-9 gated'],
             ['Evaluation', '66 hand-labelled cases, 30 held out; npm run eval'],
           ].map(([label, value]) => (

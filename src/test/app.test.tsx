@@ -16,8 +16,9 @@ function renderAt(path: string) {
 }
 
 async function skipOnboarding(user: ReturnType<typeof userEvent.setup>) {
-  expect(await screen.findByText(/set up in one page/i)).toBeTruthy();
-  await user.click(screen.getByRole('button', { name: /skip for now/i }));
+  expect(await screen.findByText(/make this space yours/i)).toBeTruthy();
+  await user.type(screen.getByLabelText(/what should we call you/i), 'Friend');
+  await user.click(screen.getByRole('button', { name: /start writing/i }));
 }
 
 async function sendEntry(user: ReturnType<typeof userEvent.setup>) {
@@ -259,8 +260,8 @@ describe('safety and privacy', () => {
 
 describe('route smoke tests', () => {
   const routes = [
-    ['/', /set up in one page/i],
-    ['/journal', /set up in one page/i],
+    ['/', /make this space yours/i],
+    ['/journal', /make this space yours/i],
     ['/welcome', /say it here first/i],
     ['/patterns', /pattern|the pattern needs/i],
     ['/check-in', /two minutes, nine questions/i],
@@ -302,7 +303,7 @@ describe('navigation', () => {
     renderAt('/welcome');
 
     await user.click(screen.getAllByRole('link', { name: /start privately/i })[0]);
-    expect((await screen.findAllByText(/set up in one page|what should i call you/i)).length).toBeGreaterThan(0);
+    expect((await screen.findAllByText(/make this space yours|what should we call you/i)).length).toBeGreaterThan(0);
 
     await user.click(screen.getAllByRole('link', { name: /model card & evaluation|model card/i })[0]);
     expect(await screen.findByText(/what the reading can do/i)).toBeTruthy();
@@ -393,31 +394,31 @@ describe('voice input', () => {
 });
 
 describe('signup', () => {
-  it('requires a name and the acknowledgement before it will start', async () => {
+  it('requires only a name and language preference to start', async () => {
     const user = userEvent.setup();
     renderAt('/signup');
 
     const start = screen.getByRole('button', { name: /start writing/i });
     expect((start as HTMLButtonElement).disabled).toBe(true);
+    expect(screen.getByLabelText(/what should we call you/i)).toBeTruthy();
+    expect(screen.getByRole('group', { name: /language preference/i })).toBeTruthy();
+    expect(screen.queryByRole('checkbox')).toBeNull();
+    expect(screen.queryByLabelText(/region|trusted contact/i)).toBeNull();
 
-    await user.type(screen.getByLabelText(/what should i call you/i), 'Kofi');
-    expect((start as HTMLButtonElement).disabled).toBe(true);
-
-    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
+    await user.type(screen.getByLabelText(/what should we call you/i), 'Kofi');
     expect((start as HTMLButtonElement).disabled).toBe(false);
+    await user.click(start);
+
+    const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
+    expect(stored.settings).toMatchObject({ displayName: 'Kofi', language: 'tw-en', onboarded: true });
   });
 
-  it('takes the name, language and trusted contact once, then opens the chat', async () => {
+  it('saves the profile and opens the journal', async () => {
     const user = userEvent.setup();
     renderAt('/signup');
 
-    await user.type(screen.getByLabelText(/what should i call you/i), 'Kofi');
+    await user.type(screen.getByLabelText(/what should we call you/i), 'Kofi');
     await user.click(screen.getByRole('button', { name: /english \+ twi/i }));
-    await user.selectOptions(screen.getByLabelText(/which region are you in/i), 'Ashanti');
-    await user.type(screen.getByLabelText(/trusted contact name/i), 'Auntie Efua');
-    await user.type(screen.getByLabelText(/trusted contact phone/i), '+233240000000');
-    await user.click(screen.getByRole('checkbox', { name: /they have agreed/i }));
-    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
     await user.click(screen.getByRole('button', { name: /start writing/i }));
 
     expect(await screen.findByLabelText(/write your entry/i)).toBeTruthy();
@@ -426,9 +427,9 @@ describe('signup', () => {
     const stored = JSON.parse(window.localStorage.getItem('nkommo.store.v1') ?? '{}');
     expect(stored.settings.onboarded).toBe(true);
     expect(stored.settings.language).toBe('tw-en');
-    expect(stored.settings.trusted.name).toBe('Auntie Efua');
-    expect(stored.safetyPlan.people[0].name).toBe('Auntie Efua');
-    expect(stored.settings.location.label).toBe('Ashanti');
+    expect(stored.settings.displayName).toBe('Kofi');
+    expect(stored.settings.trusted).toBeNull();
+    expect(stored.settings.location).toBeNull();
   });
 
   it('sends the first message and answers it in the chat', async () => {

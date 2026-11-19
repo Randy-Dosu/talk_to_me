@@ -305,39 +305,13 @@ describe('nearby services in the app', () => {
     expect(stored.settings.location.source).toBe('manual');
   });
 
-  it('fills the signup region from the device instead of asking', async () => {
+  it('keeps location details off the signup page', async () => {
     mockGeolocation('success');
-    const user = userEvent.setup();
     renderAt('/signup');
 
-    expect((await screen.findAllByText(/greater accra/i)).length).toBeGreaterThan(0);
-    expect(screen.getAllByText(/live location/i).length).toBeGreaterThan(0);
-    // The manual picker is a fallback, not the first thing asked.
+    expect(screen.queryByText(/greater accra/i)).toBeNull();
     expect(screen.queryByLabelText(/which region are you in/i)).toBeNull();
-
-    await user.type(screen.getByLabelText(/what should i call you/i), 'Ama');
-    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
-    await user.click(screen.getByRole('button', { name: /start writing/i }));
-
-    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
-    expect(stored.settings.location.source).toBe('gps');
-    expect(stored.settings.location.region).toBe('Greater Accra');
-    expect(stored.settings.displayName).toBe('Ama');
-  });
-
-  it('keeps a manual region pick when the device is blocked', async () => {
-    mockGeolocation('denied');
-    const user = userEvent.setup();
-    renderAt('/signup');
-
-    await user.selectOptions(await screen.findByLabelText(/which region are you in/i), 'Ashanti');
-    await user.type(screen.getByLabelText(/what should i call you/i), 'Kwame');
-    await user.click(screen.getByRole('checkbox', { name: /screening aid/i }));
-    await user.click(screen.getByRole('button', { name: /start writing/i }));
-
-    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) ?? '{}');
-    expect(stored.settings.location.source).toBe('manual');
-    expect(stored.settings.location.region).toBe('Ashanti');
+    expect(screen.getByLabelText(/what should we call you/i)).toBeTruthy();
   });
 
   it('puts the nearest hospital inside the crisis card', async () => {
